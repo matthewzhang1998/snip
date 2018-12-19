@@ -3,7 +3,7 @@ from model.networks.base_network import *
 from util.network_util import *
 
 class MLPModel(BaseModel):
-    def __init__(self, params, input_size, num_classes):
+    def __init__(self, params, input_size, num_classes, seed):
         super(MLPModel, self).__init__(params)
 
         network_shape = [input_size] + self.params.mlp_l_hidden_seq + [num_classes]
@@ -25,7 +25,8 @@ class MLPModel(BaseModel):
         self.Network['Linear'] = MLP(
             dims=network_shape, scope='mlp',
             activation_type=act_type, normalizer_type=norm_type,
-            train=True, init_data=init_data
+            train=True, init_data=init_data,
+            seed=seed
         )
 
     def set_weighted_params(self, weight_dict, scope):

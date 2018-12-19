@@ -62,6 +62,13 @@ def normc_initializer(shape, seed=1234, stddev=1.0, dtype=tf.float32):
     out *= stddev / np.sqrt(np.square(out).sum(axis=0, keepdims=True))
     return tf.constant(out)
 
+def bradly_initializer(shape, alpha=0.1, seed=1234, dtype=tf.float32):
+    npr = np.random.RandomState(seed)
+    stddev = np.sqrt(2/(shape[0]+shape[1]))
+    out = npr.normal(loc=alpha, scale=np.sqrt(stddev**2 - alpha**2), size=shape)\
+        * (2*npr.binomial(1, 0.5, shape) - 1)
+    print(out)
+    return tf.constant(out, dtype=dtype)
 
 def weight_variable(shape, name, init_method=None, dtype=tf.float32,
                     init_para=None, seed=1234, trainable=True):
@@ -122,6 +129,19 @@ def weight_variable(shape, name, init_method=None, dtype=tf.float32,
             gain=1.0, seed=seed, dtype=dtype
         )
 
+    elif init_method == 'variance_scaling':
+        initializer = tf.contrib.layers.variance_scaling_initializer(
+            factor=init_para['factor'], uniform=init_para['uniform'],
+            seed=seed, dtype=dtype
+        )
+
+    elif init_method == 'bradly':
+        var = bradly_initializer(
+            shape, alpha=init_para['alpha'],
+            seed=seed, dtype=dtype
+        )
+        return tf.get_variable(initializer=var, name=name, trainable=trainable)
+
     else:
         raise ValueError("Unsupported initialization method!")
 
@@ -141,9 +161,9 @@ class Linear(object):
                  dtype=tf.float32, reuse=None):
 
         self._scope = scope
-        self._num_layer = len(dims) - 1  # the last one is the input dim
-        self._w = [None] * self._num_layer
-        self._b = [None] * self._num_layer
+        self.num_layer = len(dims) - 1  # the last one is the input dim
+        self._w = [None] * self.num_layer
+        self._b = [None] * self.num_layer
         self._train = train
         self._reuse = reuse
 
@@ -153,7 +173,7 @@ class Linear(object):
 
         # initialize variables
         with tf.variable_scope(scope, reuse=self._reuse):
-            for ii in range(self._num_layer):
+            for ii in range(self.num_layer):
                 with tf.variable_scope("layer_{}".format(ii)):
                     dim_in, dim_out = dims[ii], dims[ii + 1]
 
@@ -172,7 +192,7 @@ class Linear(object):
                     )
 
     def __call__(self, input_vec):
-        self._h = [None] * self._num_layer
+        self._h = [None] * self.num_layer
 
         output_shape = tf.shape(input_vec)
         flat_input = tf.reshape(input_vec,
@@ -180,7 +200,7 @@ class Linear(object):
                                 )
 
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            for ii in range(self._num_layer):
+            for ii in range(self.num_layer):
                 with tf.variable_scope("layer_{}".format(ii)):
                     if ii == 0:
                         self._h[ii] = tf.matmul(flat_input, self._w[ii]) \
@@ -204,7 +224,7 @@ class Linear(object):
     def weights(self):
         weights = []
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            for ii in range(self._num_layer):
+            for ii in range(self.num_layer):
                 with tf.variable_scope("layer_{}".format(ii)):
                     weights.append(self._w[ii])
         return weights
@@ -390,14 +410,14 @@ class MLP(object):
     """
 
     def __init__(self, dims, scope, train,
-                 activation_type, normalizer_type, init_data,
+                 activation_type, normalizer_type, init_data, seed=1,
                  dtype=tf.float32, reuse=None):
 
         self._scope = scope
-        self._num_layer = len(dims) - 1  # the last one is the output dim
-        self._p = [None] * self._num_layer
-        self._w = {'default': [None] * self._num_layer}
-        self._b = [None] * self._num_layer
+        self.num_layer = len(dims) - 1  # the last one is the output dim
+        self.dims = dims
+        self._w = [None] * self.num_layer
+        self._b = [None] * self.num_layer
         self._train = train
         self._last_dim = dims[-1]
         self._reuse = reuse
@@ -408,28 +428,27 @@ class MLP(object):
 
         # initialize variables
         with tf.variable_scope(scope, reuse=reuse):
-            for ii in range(self._num_layer):
+            for ii in range(self.num_layer):
                 with tf.variable_scope("layer_{}".format(ii)):
                     dim_in, dim_out = dims[ii], dims[ii + 1]
 
-                    self._p[ii] = weight_variable(
+                    self._w[ii] = weight_variable(
                         shape=[dim_in, dim_out], name='permanent_weights',
                         init_method=self._init_data[ii]['w_init_method'],
                         init_para=self._init_data[ii]['w_init_para'],
-                        dtype=dtype, trainable=self._train
+                        dtype=dtype, trainable=self._train, seed=seed
                     )
-
-                    self._w['default'][ii] = tf.identity(self._p[ii])
 
                     self._b[ii] = weight_variable(
                         shape=[dim_out], name='bias',
                         init_method=self._init_data[ii]['b_init_method'],
                         init_para=self._init_data[ii]['b_init_para'],
-                        dtype=dtype, trainable=self._train
+                        dtype=dtype, trainable=self._train,
+                        seed=seed
                     )
 
-    def __call__(self, input_vec, scope='default'):
-        self._h = [None] * self._num_layer
+    def __call__(self, input_vec):
+        self._h = [None] * self.num_layer
 
         output_shape = tf.shape(input_vec)
         flat_input = tf.reshape(input_vec,
@@ -437,16 +456,87 @@ class MLP(object):
                                 )
 
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            for ii in range(self._num_layer):
+            for ii in range(self.num_layer):
                 with tf.variable_scope("layer_{}".format(ii),
                                        reuse=tf.AUTO_REUSE):
                     if ii == 0:
-                        self._h[ii] = tf.matmul(flat_input, self._w[scope][ii]) \
+                        self._h[ii] = tf.matmul(flat_input, self._w[ii]) \
                                       + self._b[ii]
 
                     else:
                         self._h[ii] = \
-                            tf.matmul(self._h[ii - 1], self._w[scope][ii]) \
+                            tf.matmul(self._h[ii - 1], self._w[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        self._h[ii] = \
+                            act_func(self._h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        self._h[ii] = \
+                            normalizer(self._h[ii], 'normalizer_' + str(ii))
+
+        return tf.reshape(self._h[-1],
+            tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+        )
+
+    def get_mask(self):
+        return self.mask
+
+    def get_weighted_mask(self):
+        return self._p
+
+    def weights(self):
+        weights = [self._w[ii] for ii in range(self.num_layer-1)]
+        return weights
+
+class MLPWithMask(MLP):
+    """ Multi Layer Perceptron (MLP)
+                Note: the number of layers is N
+
+        Input:
+                dims: a list of N+1 int, number of hidden units (last one is the
+                output dimension)
+                act_func: a list of N activation functions
+                add_bias: a boolean, indicates whether adding bias or not
+                scope: tf scope of the model
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(MLPWithMask, self).__init__(*args, **kwargs)
+        self._p = []
+        self.mask = []
+        for ii in range(self.num_layer):
+            self.mask.append(
+                tf.placeholder(dtype=tf.float32,
+                shape=self._w[ii].get_shape())
+            )
+            self._p.append(self._w[ii] * self.mask[ii])
+
+    def __call__(self, input_vec):
+        self._h = [None] * self.num_layer
+
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+                                tf.concat([[-1], [output_shape[-1]]], axis=0)
+                                )
+
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            for ii in range(self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        self._h[ii] = tf.matmul(flat_input, self._p[ii]) \
+                                      + self._b[ii]
+
+                    else:
+                        self._h[ii] = \
+                            tf.matmul(self._h[ii - 1], self._p[ii]) \
                             + self._b[ii]
 
                     if self._activation_type[ii] is not None:
@@ -466,11 +556,410 @@ class MLP(object):
         )
 
     def weights(self):
-        weights = [self._p[ii] for ii in range(self._num_layer)]
+        weights = [self._w[ii] for ii in range(self.num_layer)]
         return weights
 
-    def assign_masks(self, param_dict, scope):
-        self._w[scope] = [None] * self._num_layer
-        for ii in range(self._num_layer):
-            name = self._p[ii].name
-            self._w[scope][ii] = param_dict[name] * self._p[ii]
+    def get_mask(self):
+        return self.mask
+
+    def get_weighted_mask(self):
+        return self._p
+
+class MLPLayerWise(MLP):
+    """ Multi Layer Perceptron (MLP)
+                Note: the number of layers is N
+
+        Input:
+                dims: a list of N+1 int, number of hidden units (last one is the
+                output dimension)
+                act_func: a list of N activation functions
+                add_bias: a boolean, indicates whether adding bias or not
+                scope: tf scope of the model
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(MLPLayerWise, self).__init__(*args, **kwargs)
+        self._p = []
+        self.mask = []
+        self.proxy_input = []
+        self.proxy_output = []
+        for ii in range(self.num_layer):
+            self.mask.append(
+                tf.placeholder(dtype=tf.float32,
+                shape=self._w[ii].get_shape(),
+                name=self._scope + 'mask' + str(ii))
+            )
+            self.proxy_input.append(
+                tf.placeholder(dtype=tf.float32,
+                shape=[None, self._w[ii].get_shape()[0]],
+                name=self._scope + 'proxy' + str(ii))
+            )
+            self.proxy_output.append(
+                tf.placeholder(dtype=tf.float32,
+                shape=[None, self._w[ii].get_shape()[1]],
+                name=self._scope + 'pred' + str(ii))
+            )
+            self._p.append(self._w[ii] * self.mask[ii])
+
+    def __call__(self, input_vec):
+        self._h = [None] * self.num_layer
+
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+                                tf.concat([[-1], [output_shape[-1]]], axis=0)
+                                )
+
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            for ii in range(self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        self._h[ii] = tf.matmul(flat_input, self._p[ii]) \
+                                      + self._b[ii]
+
+                    else:
+                        self._h[ii] = \
+                            tf.matmul(self._h[ii - 1], self._p[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        self._h[ii] = \
+                            act_func(self._h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        self._h[ii] = \
+                            normalizer(self._h[ii], 'normalizer_' + str(ii))
+
+        return tf.reshape(self._h[-1],
+            tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+        )
+
+    def run_backward(self, i):
+        h = [None] * self.num_layer
+
+        output_shape = tf.shape(self.proxy_input[i])
+        flat_input = tf.reshape(self.proxy_input[i],
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
+
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            with tf.variable_scope("layer_{}".format(i), reuse=tf.AUTO_REUSE):
+                h[i] = tf.matmul(flat_input, self._p[i]) + self._b[i]
+
+                if self._activation_type[i] is not None:
+                    act_func = \
+                        get_activation_func(self._activation_type[i])
+                    h[i] = \
+                        act_func(h[i], name='activation_' + str(i))
+
+                if self._normalizer_type[i] is not None:
+                    normalizer = get_normalizer(self._normalizer_type[i],
+                                                train=self._train)
+                    h[i] = \
+                        normalizer(h[i], 'normalizer_' + str(i))
+
+            for ii in range(i+1, self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        h[ii] = tf.matmul(flat_input, self._p[ii]) \
+                                      + self._b[ii]
+
+                    else:
+                        h[ii] = \
+                            tf.matmul(h[ii - 1], self._p[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        h[ii] = \
+                            act_func(h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        h[ii] = \
+                            normalizer(h[ii], 'normalizer_' + str(ii))
+
+        return h[i], tf.reshape(h[-1],
+            tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+        )
+
+    def weights(self):
+        weights = [self._w[ii] for ii in range(self.num_layer)]
+        return weights
+
+    def get_mask(self):
+        return self.mask
+
+    def get_weighted_mask(self):
+        return self._p
+
+    def get_proxy_input(self):
+        return self.proxy_input
+
+    def get_proxy_output(self):
+        return self.proxy_output
+
+
+class MLPCopy(object):
+    """ Multi Layer Perceptron (MLP)
+                Note: the number of layers is N
+
+        Input:
+                dims: a list of N+1 int, number of hidden units (last one is the
+                output dimension)
+                act_func: a list of N activation functions
+                add_bias: a boolean, indicates whether adding bias or not
+                scope: tf scope of the model
+
+    """
+
+    def __init__(self, net, scope):
+        self._scope = scope
+        self.num_layer = net.num_layer
+        self._w = [tf.Variable(w.initialized_value()) for w in net._w]
+        self._b = [tf.Variable(b.initialized_value()) for b in net._b]
+        self._train = net._train
+        self.dims= net.dims
+        self._last_dim = net._last_dim
+        self._reuse = net._reuse
+
+        self._activation_type = net._activation_type
+        self._normalizer_type = net._normalizer_type
+        self._init_data = net._init_data
+
+        self._p = []
+        self.mask = []
+        try:
+            self.proxy_input = net.proxy_input
+            self.proxy_output = net.proxy_output
+        except:
+            self.proxy_output = self.proxy_input = None
+
+        for ii in range(self.num_layer):
+            self.mask.append(
+                tf.placeholder(dtype=tf.float32,
+                    shape=self._w[ii].get_shape(),
+                    name = self._scope+'mask'+str(ii))
+            )
+            self._p.append(self._w[ii] * self.mask[ii])
+
+    def __call__(self, input_vec):
+        self._h = [None] * self.num_layer
+
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
+
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            for ii in range(self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        self._h[ii] = tf.matmul(flat_input, self._p[ii]) \
+                        + self._b[ii]
+
+                    else:
+                        self._h[ii] = \
+                            tf.matmul(self._h[ii - 1], self._p[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        self._h[ii] = \
+                            act_func(self._h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        self._h[ii] = \
+                            normalizer(self._h[ii], 'normalizer_' + str(ii))
+
+        return tf.reshape(self._h[-1],
+            tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+        )
+
+    def run_forward(self, i, x):
+        h = [None] * self.num_layer
+
+        output_shape = tf.shape(x[i])
+        flat_input = tf.reshape(x[i],
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            for ii in range(i+1):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        h[ii] = tf.matmul(flat_input, self._p[ii]) \
+                                      + self._b[ii]
+                    else:
+                        h[ii] = \
+                            tf.matmul(h[ii - 1], self._p[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        h[ii] = \
+                            act_func(h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        h[ii] = \
+                            normalizer(h[ii], 'normalizer_' + str(ii))
+
+            curr = tf.matmul(self.proxy_input[i], self._p[i]) \
+                + self._b[i]
+
+            if self._activation_type[i] is not None:
+                act_func = \
+                    get_activation_func(self._activation_type[i])
+                curr = \
+                    act_func(curr, name='activation_' + str(i))
+
+            if self._normalizer_type[i] is not None:
+                normalizer = get_normalizer(self._normalizer_type[i],
+                                            train=self._train)
+                curr = \
+                    normalizer(curr, 'normalizer_' + str(i))
+
+        return curr, h[i]
+
+    def weights(self):
+        weights = [self._w[ii] for ii in range(self.num_layer)]
+        return weights
+
+    def get_mask(self):
+        return self.mask
+
+    def get_weighted_mask(self):
+        return self._p
+
+    def get_proxy_input(self):
+        return self.proxy_input
+
+    def get_proxy_output(self):
+        return self.proxy_output
+
+class MLPTrainMask(MLP):
+    def __init__(self, *args, **kwargs):
+        super(MLPTrainMask, self).__init__(*args, **kwargs)
+        self._p = []
+        self.mask = []
+
+        self._npr = np.random.RandomState(seed = 15694)
+        self.train_mask = []
+
+        for ii in range(self.num_layer):
+            self.mask.append(
+                tf.placeholder(dtype=tf.float32,
+                shape=self._w[ii].get_shape())
+            )
+            self.train_mask.append(
+                tf.sigmoid(tf.Variable(
+                    self._npr.normal(-3, 5,
+                        self._w[ii].get_shape().as_list()),
+                    dtype=tf.float32,
+                )))
+            self._p.append(self._w[ii] * self.mask[ii])
+        self._v = [w * mask for (w, mask) in zip(self._w, self.train_mask)]
+
+    def __call__(self, input_vec):
+        self._h = [None] * self.num_layer
+
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+                                tf.concat([[-1], [output_shape[-1]]], axis=0)
+                                )
+
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            for ii in range(self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        self._h[ii] = tf.matmul(flat_input, self._p[ii]) \
+                                      + self._b[ii]
+
+                    else:
+                        self._h[ii] = \
+                            tf.matmul(self._h[ii - 1], self._p[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        self._h[ii] = \
+                            act_func(self._h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        self._h[ii] = \
+                            normalizer(self._h[ii], 'normalizer_' + str(ii))
+
+        return tf.reshape(self._h[-1],
+            tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+        )
+
+    def mask_train(self, input_vec):
+        self._h = [None] * self.num_layer
+
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
+
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            for ii in range(self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        self._h[ii] = tf.matmul(flat_input, self._v[ii]) \
+                                      + self._b[ii]
+
+                    else:
+                        self._h[ii] = \
+                            tf.matmul(self._h[ii - 1], self._v[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        self._h[ii] = \
+                            act_func(self._h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        self._h[ii] = \
+                            normalizer(self._h[ii], 'normalizer_' + str(ii))
+
+        return tf.reshape(self._h[-1],
+                          tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+                          )
+
+    def weights(self):
+        return self._w
+
+    def get_mask_train(self):
+        return self.train_mask
+
+    def get_weighted_mask_train(self):
+        return self._v
+
+    def get_mask(self):
+        return self.mask
+
+    def get_weighted_mask(self):
+        return self._p

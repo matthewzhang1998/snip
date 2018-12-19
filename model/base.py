@@ -1,19 +1,20 @@
 import tensorflow as tf
 import numpy as np
-from model.networks.mlp import *
+from model.networks.mlp2 import *
 # from model.networks.cnn import *
 # from model.networks.rnn import *
 
 
 class Pruner(object):
-    def __init__(self, scope, params, input_size, num_classes):
+    def __init__(self, scope, params, input_size, num_classes, seed, init):
         self.params = params
+        self.Snip = {}
+        self.scope = scope
         with tf.variable_scope(scope):
             self.model = get_model(params.model_type)(
-                params, input_size, num_classes
+                params, input_size, num_classes, seed, init
             )
-            self.weight_params = [var for var in
-                self.model.weight_variables()]
+            self.Snip['Weight'] = self.model.weight_variables()
         self.Tensor = {}
         self.Op = {}
 

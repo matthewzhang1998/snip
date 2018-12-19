@@ -3,19 +3,41 @@ import argparse
 def get_base_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--learning_rate', type=float, default=1e-4)
-    parser.add_argument('--batch_size', type=int, default=256)
-    parser.add_argument('--num_steps', type=int, default=500)
-    parser.add_argument('--val_steps', type=int, default=50)
+    parser.add_argument('--learning_rate', type=float, default=0.001)
+    parser.add_argument('--decay_scheme', type=str, default='exponential')
+    parser.add_argument('--decay_rate', type=float, default=0.1)
+
+    parser.add_argument('--decay_iter', type=int, default=25000)
+
+    parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--num_steps', type=int, default=100000)
+    parser.add_argument('--val_steps', type=int, default=600)
+
+    parser.add_argument('--seed', type=int, default=3451)
 
     parser.add_argument('--optimizer_type', type=str, default='adam')
+    parser.add_argument('--momentum', type=float, default=0.9)
 
-    parser.add_argument('--noise_delta', type=float, default=1e-2)
+    parser.add_argument('--weight_decay', type=float, default=0.0005)
+
+    parser.add_argument('--noise_delta', type=float, default=0.1)
     parser.add_argument('--prune_k', type=float, default=0.95)
     parser.add_argument('--random_k', type=float, default=0.95)
 
     parser.add_argument('--log_dir', type=str, default='./log')
     parser.add_argument('--model_type', type=str, default='mlp')
+
+    parser.add_argument('--grad_param', type=str, default='Mask') # Weight, Mask, Comb
+
+    parser.add_argument('--prune_method', type=str, default='together')
+    parser.add_argument('--value_method', type=str, default='largest')
+
+    parser.add_argument('--pretrain_learning_rate', type=float, default=1e-3)
+    parser.add_argument('--pretrain_num_steps', type=int, default=10)
+    parser.add_argument('--pretrain_weight_decay', type=float, default=0.00)
+    parser.add_argument('--pretrain_kl_beta', type=float, default=0.0)
+
+    parser.add_argument('--l1_mask_penalty', type=float, default=0.00)
 
     return parser
 

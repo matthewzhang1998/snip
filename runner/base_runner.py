@@ -4,6 +4,14 @@ from model.snip import *
 
 from util.logger_util import *
 
+def SoftmaxCE(logits, labels):
+    return tf.nn.softmax_cross_entropy_with_logits(
+        logits=logits, labels=labels
+    )
+
+def MSELoss(logits, labels):
+    return tf.losses.mean_squared_error(labels, logits)
+
 class BaseRunner(object):
     def __init__(self, scope, params):
         self.params = params
@@ -18,8 +26,6 @@ class BaseRunner(object):
         self.Sess = tf.Session()
 
         self.Dir = get_dir(params.log_dir)
-
-        self.Writer = tf.summary.FileWriter(self.Dir, self.Sess.graph)
 
     def preprocess(self):
         raise NotImplementedError
