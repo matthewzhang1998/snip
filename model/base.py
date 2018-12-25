@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from model.networks.mlp2 import *
 # from model.networks.cnn import *
-# from model.networks.rnn import *
+from model.networks.rnn import *
 
 
 class Pruner(object):
@@ -14,7 +14,6 @@ class Pruner(object):
             self.model = get_model(params.model_type)(
                 params, input_size, num_classes, seed, init
             )
-            self.Snip['Weight'] = self.model.weight_variables()
         self.Tensor = {}
         self.Op = {}
 

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from util import norm_util
-
+from util.rnn_util import *
 
 def get_activation_func(activation_type):
     if activation_type == 'leaky_relu':
@@ -33,6 +33,10 @@ def get_rnn_cell(rnn_cell_type):
         cell_type = tf.contrib.rnn.GRUCell
     elif rnn_cell_type == 'norm_lstm':
         cell_type = tf.contrib.rnn.LayerNormBasicLSTMCell
+    elif rnn_cell_type == 'mask_basic':
+        cell_type = BasicMaskRNNCell
+    elif rnn_cell_type == 'mask_lstm':
+        cell_type = BasicMaskLSTMCell
     else:
         raise ValueError("Unsupported cell type: {}".format(rnn_cell_type))
     return cell_type, cell_args
@@ -70,8 +74,8 @@ def bradly_initializer(shape, alpha=0.1, seed=1234, dtype=tf.float32):
     print(out)
     return tf.constant(out, dtype=dtype)
 
-def weight_variable(shape, name, init_method=None, dtype=tf.float32,
-                    init_para=None, seed=1234, trainable=True):
+def init(shape=None, name=None, init_method=None, dtype=tf.float32,
+        init_para=None, seed=1234, trainable=True):
     """ @brief:
             Initialize weights
 
@@ -86,10 +90,9 @@ def weight_variable(shape, name, init_method=None, dtype=tf.float32,
     """
 
     if init_method is None or init_method == 'zero':
-        initializer = tf.zeros_initializer(shape, dtype=dtype)
+        initializer = tf.zeros_initializer(dtype=dtype)
 
     if init_method == "normc":
-        print(shape)
         var = normc_initializer(
             shape, stddev=init_para['stddev'],
             seed=seed, dtype=dtype
@@ -140,11 +143,17 @@ def weight_variable(shape, name, init_method=None, dtype=tf.float32,
             shape, alpha=init_para['alpha'],
             seed=seed, dtype=dtype
         )
-        return tf.get_variable(initializer=var, name=name, trainable=trainable)
+        return lambda x: var
 
     else:
-        raise ValueError("Unsupported initialization method!")
+        raise ValueError("Unsupported initialization method {}".format(init_method))
 
+    return initializer
+
+def weight_variable(shape, name='w', init_method=None, dtype=tf.float32,
+                    init_para=None, seed=1234, trainable=True):
+
+    initializer = init(shape, name, init_method, dtype, init_para, seed, trainable)
     var = tf.get_variable(initializer=initializer(shape),
                           name=name, trainable=trainable)
 
@@ -236,7 +245,7 @@ class Recurrent_Network(object):
 
     def __init__(self, scope, activation_type,
                  normalizer_type, recurrent_cell_type,
-                 train, hidden_size, dtype=tf.float32, reuse=None):
+                 train, hidden_size, seed=12345, dtype=tf.float32, reuse=None):
         self._scope = scope
         _cell_proto, _cell_kwargs = get_rnn_cell(recurrent_cell_type)
         self._activation_type = activation_type
@@ -269,6 +278,63 @@ class Recurrent_Network(object):
     def weights(self):
         with tf.variable_scope(self._scope, reuse=self._reuse):
             pass
+
+    def set_weights(self, mask):
+        self._cell.set_weights()
+
+class Recurrent_Network_with_mask(Recurrent_Network):
+    """
+    borrows tensorflow api for recurrent networks
+    """
+    def __init__(self, scope, activation_type,
+                 normalizer_type, recurrent_cell_type,
+                 train, hidden_size, input_depth, seed=12345,
+                 dtype=tf.float32, reuse=None, init_data=None):
+        self._scope = scope
+        _cell_proto, _cell_kwargs = get_rnn_cell(recurrent_cell_type)
+        self._activation_type = activation_type
+        self._normalization_type = normalizer_type
+        self._train = train
+        self._reuse = reuse
+        self._hidden_size = hidden_size
+        with tf.variable_scope(scope):
+            self._cell = _cell_proto(hidden_size, **_cell_kwargs, input_depth=input_depth,
+                seed=seed, init_data=init_data)
+
+    def __call__(self, input_tensor, hidden_states=None):
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
+                self._cell, input_tensor, initial_state=hidden_states,
+                dtype=tf.float32
+            )
+            if self._activation_type is not None:
+                act_func = \
+                    get_activation_func(self._activation_type)
+                _rnn_outputs = \
+                    act_func(_rnn_outputs, name='activation_0')
+
+            if self._normalization_type is not None:
+                normalizer = get_normalizer(self._normalization_type,
+                                            train=self._train)
+                _rnn_outputs = \
+                    normalizer(_rnn_outputs, 'normalizer_0')
+        return _rnn_outputs, _rnn_states
+
+    def weights(self):
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            pass
+
+    def set_weights(self, mask):
+        self._cell.set_weights()
+
+    def weights(self):
+        return [self._cell._kernel]
+
+    def get_mask(self):
+        return [self._cell._mask]
+
+    def get_weighted_mask(self):
+        return [self._cell._combined]
 
 class Bidirectional_Recurrent_Network(object):
     """
@@ -523,16 +589,18 @@ class MLPWithMask(MLP):
 
         output_shape = tf.shape(input_vec)
         flat_input = tf.reshape(input_vec,
-                                tf.concat([[-1], [output_shape[-1]]], axis=0)
-                                )
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
 
         with tf.variable_scope(self._scope, reuse=self._reuse):
             for ii in range(self.num_layer):
                 with tf.variable_scope("layer_{}".format(ii),
                                        reuse=tf.AUTO_REUSE):
+
                     if ii == 0:
+
                         self._h[ii] = tf.matmul(flat_input, self._p[ii]) \
-                                      + self._b[ii]
+                            + self._b[ii]
 
                     else:
                         self._h[ii] = \
@@ -542,8 +610,10 @@ class MLPWithMask(MLP):
                     if self._activation_type[ii] is not None:
                         act_func = \
                             get_activation_func(self._activation_type[ii])
+
                         self._h[ii] = \
                             act_func(self._h[ii], name='activation_' + str(ii))
+
 
                     if self._normalizer_type[ii] is not None:
                         normalizer = get_normalizer(self._normalizer_type[ii],

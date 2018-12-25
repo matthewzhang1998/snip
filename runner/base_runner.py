@@ -12,6 +12,13 @@ def SoftmaxCE(logits, labels):
 def MSELoss(logits, labels):
     return tf.losses.mean_squared_error(labels, logits)
 
+def Seq2SeqLoss(logits, labels):
+    return tf.contrib.seq2seq.sequence_loss(
+        logits, labels, tf.ones_like(logits[:,:,0], dtype=tf.float32),
+        average_across_timesteps=False,
+        average_across_batch=True
+    )
+
 class BaseRunner(object):
     def __init__(self, scope, params):
         self.params = params

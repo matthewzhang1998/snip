@@ -182,10 +182,6 @@ class MNISTRunner(BaseRunner):
 
         self.Placeholder['Input_Logits'] = tf.placeholder(tf.float32, [None, 10])
 
-        self.Placeholder['Random_Mask'] = self.Model['Random'].Placeholder
-        self.Placeholder['Snip_Mask'] = self.Model['Snip'].Placeholder
-        self.Placeholder['Random_Train_Mask'] = self.Model['Random_Train_Mask'].Placeholder
-
         self.Tensor['Proto_Minibatch'] = {
             'Features': self.Placeholder['Input_Feature'],
             'Labels': self.Placeholder['Input_Label']
@@ -203,6 +199,11 @@ class MNISTRunner(BaseRunner):
         self.Model['Random'].prune(
             self.Tensor['Proto_Minibatch'], self.Tensor['Loss_Function']
         )
+
+        self.Placeholder['Random_Mask'] = self.Model['Random'].Placeholder
+        self.Placeholder['Snip_Mask'] = self.Model['Snip'].Placeholder
+        self.Placeholder['Random_Train_Mask'] = self.Model['Random_Train_Mask'].Placeholder
+
         self.Model['Random_Train_Mask'].prune(
             self.Tensor['Proto_Minibatch'], self.Tensor['Loss_Function']
         )
