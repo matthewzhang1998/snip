@@ -167,4 +167,4 @@ class PTBInput(object):
     )
 
 if __name__ == '__main__':
-ptb_raw_data("simple-examples/data")
+    ptb_raw_data("simple-examples/data")

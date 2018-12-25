@@ -2,76 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9bed6fbd-c5a0-40aa-9693-37733b412587" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/data/simple-examples/load_data.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/add_main.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/init_path.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/mnist_main.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/ptb_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/load_pen.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/1-train/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/1-train/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/1-train/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/getbest" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/getbest.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/gettext" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/gettext.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/lattices/AMI-3E0501_u3005_127040_127488.lat.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/lattices/AMI-3E0501_u3005_127513_127835.lat.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/lattices/AMI-3E0501_u3005_127865_128175.lat.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/lattices/AMI-3E0501_u3005_128188_128447.lat.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/lattices/AMI-3E0501_u3005_128490_129032.lat.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/lattices/latlist" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/lattices/nbest.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/makenbest" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/2-nbest-rescore/makenbest.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/3-combination/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/3-combination/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/3-combination/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/4-data-generation/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/4-data-generation/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/4-data-generation/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/5-one-iter/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/5-one-iter/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/5-one-iter/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/6-recovery-during-training/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/6-recovery-during-training/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/6-recovery-during-training/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/7-dynamic-evaluation/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/7-dynamic-evaluation/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/7-dynamic-evaluation/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/8-direct/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/8-direct/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/8-direct/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/9-char-based-lm/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/9-char-based-lm/test.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/9-char-based-lm/train.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/data/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/data/ptb.char.test.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/data/ptb.char.train.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/data/ptb.char.valid.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/data/ptb.test.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/data/ptb.train.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/data/ptb.valid.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/load_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/simple-examples/load_data.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/models/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/models/swb.ngram.model" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/models/swb.rnn.model" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/CHANGE.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/COPYRIGHT.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/FAQ.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/convert.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/example.output" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/example.sh" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/prob.c" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/rnnlm.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/rnnlmlib.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/rnnlmlib.h" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/test" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/train" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/simple-examples/rnnlm-0.2b/valid" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/load_pen.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/load_pen.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -117,14 +52,14 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="dummy" value="44" />
-          <entry key="py" value="43631" />
+          <entry key="dummy" value="52" />
+          <entry key="py" value="43632" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="44" />
-          <entry key="Python" value="43631" />
+          <entry key="PLAIN_TEXT" value="52" />
+          <entry key="Python" value="43632" />
         </counts>
       </usages-collector>
     </session>
@@ -206,10 +141,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/data/simple-examples/load_data.py">
+        <entry file="file://$PROJECT_DIR$/data/load_pen.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="10" column="24" lean-forward="true" selection-start-line="10" selection-start-column="24" selection-end-line="10" selection-end-column="24" />
+            <state relative-caret-position="227">
+              <caret line="169" column="4" selection-start-line="169" selection-start-column="4" selection-end-line="169" selection-end-column="4" />
               <folding>
                 <element signature="e#735#773#0" expanded="true" />
               </folding>
@@ -328,7 +263,6 @@
         <option value="$PROJECT_DIR$/util/rnn_util.py" />
         <option value="$PROJECT_DIR$/runner/rnn_add.py" />
         <option value="$PROJECT_DIR$/runner/base_runner.py" />
-        <option value="$PROJECT_DIR$/data/load_pen.py" />
         <option value="$PROJECT_DIR$/main/tmp/ptb_main.py" />
         <option value="$PROJECT_DIR$/main/ptb_main.py" />
         <option value="$PROJECT_DIR$/config/base_config.py" />
@@ -337,6 +271,7 @@
         <option value="$PROJECT_DIR$/util/network_util.py" />
         <option value="$PROJECT_DIR$/runner/rnn_ptb.py" />
         <option value="$PROJECT_DIR$/data/simple-examples/load_data.py" />
+        <option value="$PROJECT_DIR$/data/load_pen.py" />
       </list>
     </option>
   </component>
@@ -424,11 +359,12 @@
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/main" />
-    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/util" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/data" />
+      <recent name="$PROJECT_DIR$/main" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -913,10 +849,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/data/simple-examples/load_data.py">
+    <entry file="file://$PROJECT_DIR$/data/load_pen.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" column="24" lean-forward="true" selection-start-line="10" selection-start-column="24" selection-end-line="10" selection-end-column="24" />
+        <state relative-caret-position="227">
+          <caret line="169" column="4" selection-start-line="169" selection-start-column="4" selection-end-line="169" selection-end-column="4" />
           <folding>
             <element signature="e#735#773#0" expanded="true" />
           </folding>
