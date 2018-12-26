@@ -39,7 +39,7 @@ class PTBRunner(BaseRunner):
             self.Model['Snip'] = Mask('snip', self.params,
                 self.params.embed_size, self.params.embed_size, self.params.seed)
             self.Model['Random'] = Mask('random', self.params,
-                self.params.embed_size, self.params.embed_size, self.params.seed + 1562)
+                self.params.embed_size, self.params.embed_size, self.params.seed)
 
             self.start_ix = 0
 
@@ -149,12 +149,7 @@ class PTBRunner(BaseRunner):
             )
         )
 
-        self.Output['Error'] = tf.reduce_mean(
-            tf.cast(
-                tf.argmax(self.Placeholder['Input_Logits'], axis=-1) \
-                != self.Placeholder['Input_Label'], tf.float32
-            )
-        )
+        self.Output['Error'] = tf.exp(self.Output['Loss'])
 
         self.Summary['Train_Error'] = tf.summary.scalar(
             'Train_Error', self.Output['Error']
@@ -211,8 +206,7 @@ class PTBRunner(BaseRunner):
         delta_masks = self.Sess.run(self.Model['Snip'].Snip['Weight'])
         for ix, (mask, delta) in enumerate(zip(random_masks, delta_masks)):
             binary = self._npr.binomial(1, 1 - self.params.random_k, mask.shape)
-            self.Mask['Random'][self.Model['Random'].Snip['Mask'][ix]] = \
-                np.ones(delta.shape)
+            self.Mask['Random'][self.Model['Random'].Snip['Mask'][ix]] = binary
 
             perturb = np.ones(delta.shape)
 
@@ -259,7 +253,9 @@ class PTBRunner(BaseRunner):
         return features, labels
 
     def val(self, i):
-        features, labels = self.Data['val                                                                           ']
+        features, labels = self.Data['val']
+        features = features[:100]
+        labels = labels[:100]
         # self.Dataset.test.images, self.Dataset.test.labels
 
         feed_dict = {
@@ -320,6 +316,9 @@ class PTBRunner(BaseRunner):
             features = self.Data['train'][0][self.start_ix:end_ix]
             labels = self.Data['train'][1][self.start_ix:end_ix]
         self.start_ix = end_ix
+
+
+
         return features, labels
 
 

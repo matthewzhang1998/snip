@@ -56,7 +56,7 @@ def _build_vocab(filename):
     return word_to_id
 
 
-def _file_to_word_ids(filename, word_to_id):
+def _file_to_word_ids(filename, word_to_id, max_len=30):
     data = _read_words(filename)
     new_data = []
     for sent in data:
@@ -67,6 +67,7 @@ def _file_to_word_ids(filename, word_to_id):
     data = np.zeros([len(new_data), len(max(new_data, key = lambda x: len(x)))])
     for i, j in enumerate(new_data):
         data[i][0:len(j)] = j
+    data = data[:,:max_len+1]
 
     return data
 

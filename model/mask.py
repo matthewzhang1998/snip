@@ -25,7 +25,6 @@ class Mask(Pruner):
             if embed != None:
                 self.Tensor['Snip_Pred'] = tf.einsum('ijk,kl->ijl',
                     self.Tensor['Snip_Pred'], embed[0]) + embed[1]
-            print(self.Tensor['Snip_Pred'].shape)
 
             self.Tensor['Snip_Loss'] = tf.reduce_mean(loss_fnc(
                 self.Tensor['Snip_Pred'], minibatch['Labels']
@@ -61,7 +60,7 @@ class MaskTrain(object):
 
         return self.Tensor['Predictions']
 
-    def prune(self, minibatch, loss_fnc):
+    def prune(self, minibatch, loss_fnc, embed=None):
         self.Tensor['Snip_Pred'] = self.model.train_mask(
             minibatch['Features']
         )
@@ -71,6 +70,10 @@ class MaskTrain(object):
         self.Snip['Comb'] = self.model.get_weighted_mask()
         self.Snip['Comb_Train'] = self.model.get_weighted_mask_train()
         self.Placeholder = self.Snip['Mask']
+
+        if embed != None:
+            self.Tensor['Snip_Pred'] = tf.einsum('ijk,kl->ijl',
+                 self.Tensor['Snip_Pred'], embed[0]) + embed[1]
 
         self.Tensor['Snip_Loss'] = tf.reduce_mean(loss_fnc(
             self.Tensor['Snip_Pred'], minibatch['Labels']
