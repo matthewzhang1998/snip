@@ -9,6 +9,11 @@ def SoftmaxCE(logits, labels):
         logits=logits, labels=labels
     )
 
+def SoftmaxSliceCE(logits, labels):
+    return tf.nn.softmax_cross_entropy_with_logits(
+        logits=logits[:,-1], labels=labels
+    )
+
 def MSELoss(logits, labels):
     return tf.losses.mean_squared_error(labels, logits)
 

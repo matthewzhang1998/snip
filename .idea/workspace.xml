@@ -6,12 +6,16 @@
       <change afterPath="$PROJECT_DIR$/main/init_path.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/mnist_main.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/ptb_main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main/seq_mnist_main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/runner/rnn_mnist.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/base_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/base_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/rnn_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/rnn_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/load_pen.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/load_pen.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/mask.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/mask.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model/networks/rnn.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/networks/rnn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/runner/base_runner.py" beforeDir="false" afterPath="$PROJECT_DIR$/runner/base_runner.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/runner/rnn_ptb.py" beforeDir="false" afterPath="$PROJECT_DIR$/runner/rnn_ptb.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/network_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/network_util.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/rnn_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/rnn_util.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -36,35 +40,36 @@
           <entry key="project.open.time.10" value="2" />
           <entry key="project.open.time.11" value="2" />
           <entry key="project.open.time.12" value="1" />
+          <entry key="project.open.time.13" value="1" />
           <entry key="project.open.time.15" value="2" />
           <entry key="project.open.time.17" value="1" />
           <entry key="project.open.time.2" value="1" />
           <entry key="project.open.time.23" value="1" />
           <entry key="project.open.time.30" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="12" />
+          <entry key="project.opened" value="13" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="122" />
+          <entry key="py" value="141" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="122" />
+          <entry key="Python" value="141" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="52" />
-          <entry key="py" value="44199" />
+          <entry key="py" value="46051" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="52" />
-          <entry key="Python" value="44199" />
+          <entry key="Python" value="46051" />
         </counts>
       </usages-collector>
     </session>
@@ -74,58 +79,50 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config/base_config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="630">
-              <caret line="42" column="59" selection-start-line="42" selection-start-column="59" selection-end-line="42" selection-end-column="59" />
+            <state relative-caret-position="165">
+              <caret line="11" column="62" selection-start-line="11" selection-start-column="62" selection-end-line="11" selection-end-column="62" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="6" column="71" selection-start-line="6" selection-start-column="71" selection-end-line="6" selection-end-column="71" />
+              <folding>
+                <marker date="1546025097340" expanded="true" signature="40:45" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/model/networks/rnn.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="287">
+              <caret line="73" column="73" selection-start-line="73" selection-start-column="73" selection-end-line="73" selection-end-column="73" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
+        <entry file="file://$PROJECT_DIR$/runner/rnn_mnist.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="75">
-              <caret line="5" column="63" selection-start-line="5" selection-start-column="63" selection-end-line="5" selection-end-column="63" />
+            <state relative-caret-position="215">
+              <caret line="263" column="39" selection-start-line="263" selection-start-column="39" selection-end-line="263" selection-end-column="39" />
               <folding>
-                <marker date="1545789883421" expanded="true" signature="40:45" ph="..." />
+                <element signature="e#0#18#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main/ptb_main.py">
+        <entry file="file://$PROJECT_DIR$/runner/base_runner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="105">
-              <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
-              <folding>
-                <element signature="e#0#16#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/model/mask.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="585">
-              <caret line="41" column="45" selection-start-line="41" selection-start-column="45" selection-end-line="41" selection-end-column="45" />
-              <folding>
-                <element signature="e#0#23#0" expanded="true" />
-                <marker date="1545783270141" expanded="true" signature="101:102" ph="..." />
-                <marker date="1545783270141" expanded="true" signature="1504:1509" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main/add_main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="15" selection-start-line="15" selection-end-line="17" selection-end-column="10" />
-              <folding>
-                <element signature="e#0#16#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="135">
+              <caret line="13" column="26" selection-start-line="13" selection-start-column="26" selection-end-line="13" selection-end-column="26" />
             </state>
           </provider>
         </entry>
@@ -133,56 +130,22 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/runner/rnn_ptb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4695">
-              <caret line="319" selection-start-line="319" selection-end-line="319" />
+            <state relative-caret-position="-1798">
+              <caret line="258" column="27" selection-start-line="258" selection-start-column="27" selection-end-line="258" selection-end-column="27" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-                <marker date="1545787244648" expanded="true" signature="10194:10200" ph="..." />
-                <marker date="1545787244648" expanded="true" signature="11259:11266" ph="..." />
+                <marker date="1546025434509" expanded="true" signature="10320:10326" ph="..." />
+                <marker date="1546025434509" expanded="true" signature="11385:11392" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/config/mlp_config.py">
+        <entry file="file://$PROJECT_DIR$/model/networks/mlp_norm.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="23" selection-start-line="2" selection-start-column="23" selection-end-line="5" selection-end-column="74" />
-              <folding>
-                <marker date="1544375095606" expanded="true" signature="40:45" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data/load_pen.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="720">
-              <caret line="58" column="54" selection-start-line="58" selection-start-column="54" selection-end-line="58" selection-end-column="54" />
-              <folding>
-                <element signature="e#735#773#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/util/network_util.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="8820">
-              <caret line="591" column="54" selection-start-line="591" selection-start-column="54" selection-end-line="591" selection-end-column="54" />
-              <folding>
-                <element signature="e#0#23#0" expanded="true" />
-                <marker date="1545757769404" expanded="true" signature="2261:2529" ph="..." />
-                <marker date="1545757769404" expanded="true" signature="11978:12020" ph="..." />
-                <marker date="1545757769404" expanded="true" signature="12039:12079" ph="..." />
-                <marker date="1545757769404" expanded="true" signature="28645:28650" ph="..." />
-                <marker date="1545757769404" expanded="true" signature="29457:30476" ph="..." />
-                <marker date="1545757769404" expanded="true" signature="38324:38329" ph="..." />
-                <marker date="1545757769404" expanded="true" signature="38495:38501" ph="..." />
-              </folding>
+            <state relative-caret-position="-913">
+              <caret line="9" column="35" selection-start-line="9" selection-start-column="35" selection-end-line="9" selection-end-column="35" />
             </state>
           </provider>
         </entry>
@@ -190,8 +153,36 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/runner/mnist2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5760">
-              <caret line="391" column="31" selection-start-line="373" selection-start-column="8" selection-end-line="391" selection-end-column="31" />
+            <state relative-caret-position="1650">
+              <caret line="147" column="9" selection-start-line="147" selection-start-column="9" selection-end-line="149" selection-end-column="58" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/runner/mnist.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="11" selection-start-line="11" selection-end-line="11" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/util/network_util.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="765">
+              <caret line="627" column="9" selection-start-line="627" selection-start-column="9" selection-end-line="627" selection-end-column="9" />
+              <folding>
+                <element signature="e#0#23#0" expanded="true" />
+                <marker date="1545927100952" expanded="true" signature="2376:2644" ph="..." />
+                <marker date="1545927100952" expanded="true" signature="12000:12042" ph="..." />
+                <marker date="1545927100952" expanded="true" signature="12061:12101" ph="..." />
+                <marker date="1545927100952" expanded="true" signature="28667:28672" ph="..." />
+                <marker date="1545927100952" expanded="true" signature="29479:30498" ph="..." />
+                <marker date="1545927100952" expanded="true" signature="38346:38351" ph="..." />
+                <marker date="1545927100952" expanded="true" signature="38517:38523" ph="..." />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -207,10 +198,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>Train_Mask</find>
-      <find>proxy_input</find>
-      <find>self.Network</find>
-      <find>l1_mask</find>
       <find>Random_Meta</find>
       <find>train_mask</find>
       <find>1+np.exp</find>
@@ -237,6 +224,10 @@
       <find>fea</find>
       <find>rnn</find>
       <find>get_batch</find>
+      <find>input_depth</find>
+      <find>self._initializer</find>
+      <find>initializer=initializers.get</find>
+      <find>Input_Feat</find>
     </findStrings>
     <replaceStrings>
       <replace>num_layer</replace>
@@ -275,19 +266,21 @@
         <option value="$PROJECT_DIR$/model/random.py" />
         <option value="$PROJECT_DIR$/runner/mnist5.py" />
         <option value="$PROJECT_DIR$/main/add_main.py" />
-        <option value="$PROJECT_DIR$/util/rnn_util.py" />
         <option value="$PROJECT_DIR$/runner/rnn_add.py" />
-        <option value="$PROJECT_DIR$/runner/base_runner.py" />
         <option value="$PROJECT_DIR$/main/tmp/ptb_main.py" />
         <option value="$PROJECT_DIR$/main/ptb_main.py" />
-        <option value="$PROJECT_DIR$/model/networks/rnn.py" />
-        <option value="$PROJECT_DIR$/util/network_util.py" />
         <option value="$PROJECT_DIR$/data/simple-examples/load_data.py" />
         <option value="$PROJECT_DIR$/model/mask.py" />
-        <option value="$PROJECT_DIR$/runner/rnn_ptb.py" />
         <option value="$PROJECT_DIR$/data/load_pen.py" />
-        <option value="$PROJECT_DIR$/config/base_config.py" />
+        <option value="$PROJECT_DIR$/util/network_util.py" />
+        <option value="$PROJECT_DIR$/util/rnn_util.py" />
+        <option value="$PROJECT_DIR$/model/networks/rnn.py" />
+        <option value="$PROJECT_DIR$/main/seq_mnist_main.py" />
+        <option value="$PROJECT_DIR$/runner/base_runner.py" />
         <option value="$PROJECT_DIR$/config/rnn_config.py" />
+        <option value="$PROJECT_DIR$/runner/rnn_ptb.py" />
+        <option value="$PROJECT_DIR$/config/base_config.py" />
+        <option value="$PROJECT_DIR$/runner/rnn_mnist.py" />
       </list>
     </option>
   </component>
@@ -330,18 +323,7 @@
             <path>
               <item name="snip" type="b2602c69:ProjectViewProjectNode" />
               <item name="snip" type="462c0819:PsiDirectoryNode" />
-              <item name="log" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="snip" type="b2602c69:ProjectViewProjectNode" />
-              <item name="snip" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="snip" type="b2602c69:ProjectViewProjectNode" />
-              <item name="snip" type="462c0819:PsiDirectoryNode" />
-              <item name="main" type="462c0819:PsiDirectoryNode" />
-              <item name="tmp" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="snip" type="b2602c69:ProjectViewProjectNode" />
@@ -395,7 +377,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.ptb_main">
+  <component name="RunManager" selected="Python.seq_mnist_main">
     <configuration name="add_main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="lotteryticket" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -409,27 +391,6 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main/add_main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="lisp_main" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="lotteryticket" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main/lisp_main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -501,20 +462,41 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="seq_mnist_main" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="lotteryticket" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/main" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main/seq_mnist_main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
-      <item itemvalue="Python.lisp_main" />
       <item itemvalue="Python.pretrain_main" />
       <item itemvalue="Python.add_main" />
       <item itemvalue="Python.load_pen" />
       <item itemvalue="Python.ptb_main" />
+      <item itemvalue="Python.seq_mnist_main" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.seq_mnist_main" />
         <item itemvalue="Python.ptb_main" />
         <item itemvalue="Python.load_pen" />
         <item itemvalue="Python.add_main" />
         <item itemvalue="Python.pretrain_main" />
-        <item itemvalue="Python.lisp_main" />
       </list>
     </recent_temporary>
   </component>
@@ -533,20 +515,21 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-3" y="31" width="1198" height="647" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25167784" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.4966443" visible="true" weight="0.3216266" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.3988658" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49496645" visible="true" weight="0.3216266" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49832216" weight="0.3974122" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5033557" side_tool="true" visible="true" weight="0.3216266" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50503355" side_tool="true" visible="true" weight="0.3216266" />
       <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -580,7 +563,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/runner/rnn_ptb.py</url>
-          <line>43</line>
+          <line>44</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
@@ -611,13 +594,6 @@
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/model/snip2.py" />
-    <entry file="file://$PROJECT_DIR$/runner/mnist.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-885">
-          <caret line="48" column="38" selection-start-line="48" selection-start-column="38" selection-end-line="48" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main/lisp_main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -639,24 +615,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/runner/mnist4.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="96">
-          <caret line="62" column="41" selection-start-line="62" selection-start-column="31" selection-end-line="62" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main/pretrain_main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
           <caret line="1" column="18" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/networks/mlp_norm.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="9" column="35" selection-start-line="9" selection-start-column="35" selection-end-line="9" selection-end-column="35" />
         </state>
       </provider>
     </entry>
@@ -744,51 +706,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/util/rnn_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2265">
-          <caret line="151" column="4" selection-start-line="151" selection-start-column="4" selection-end-line="151" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/runner/base_runner.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="16" column="46" selection-start-line="16" selection-start-column="46" selection-end-line="16" selection-end-column="46" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/runner/rnn_add.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1785">
-          <caret line="49" column="82" selection-start-line="49" selection-start-column="82" selection-end-line="49" selection-end-column="82" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/networks/rnn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="660">
-          <caret line="46" column="73" selection-start-line="46" selection-start-column="73" selection-end-line="46" selection-end-column="73" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/config/base_config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="42" column="59" selection-start-line="42" selection-start-column="59" selection-end-line="42" selection-end-column="59" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main/ptb_main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#16#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/model/mask.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="585">
@@ -797,38 +714,6 @@
             <element signature="e#0#23#0" expanded="true" />
             <marker date="1545783270141" expanded="true" signature="101:102" ph="..." />
             <marker date="1545783270141" expanded="true" signature="1504:1509" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main/add_main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="15" selection-start-line="15" selection-end-line="17" selection-end-column="10" />
-          <folding>
-            <element signature="e#0#16#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/runner/rnn_ptb.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4695">
-          <caret line="319" selection-start-line="319" selection-end-line="319" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <marker date="1545787244648" expanded="true" signature="10194:10200" ph="..." />
-            <marker date="1545787244648" expanded="true" signature="11259:11266" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/config/mlp_config.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="23" selection-start-line="2" selection-start-column="23" selection-end-line="5" selection-end-column="74" />
-          <folding>
-            <marker date="1544375095606" expanded="true" signature="40:45" ph="..." />
           </folding>
         </state>
       </provider>
@@ -843,36 +728,154 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/config/mlp_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30">
+          <caret line="2" column="23" selection-start-line="2" selection-start-column="23" selection-end-line="5" selection-end-column="74" />
+          <folding>
+            <marker date="1544375095606" expanded="true" signature="40:45" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main/add_main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="15" selection-start-line="15" selection-end-line="17" selection-end-column="10" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/rnn_add.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="49" column="82" selection-start-line="49" selection-start-column="82" selection-end-line="49" selection-end-column="82" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/mnist4.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="780">
+          <caret line="62" column="41" selection-start-line="62" selection-start-column="31" selection-end-line="62" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main/ptb_main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="17" selection-end-column="10" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main/seq_mnist_main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="18" selection-start-line="6" selection-start-column="18" selection-end-line="6" selection-end-column="18" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/rnn_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="63">
+          <caret line="18" column="70" selection-start-line="18" selection-start-column="70" selection-end-line="18" selection-end-column="70" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/networks/mlp_norm.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-913">
+          <caret line="9" column="35" selection-start-line="9" selection-start-column="35" selection-end-line="9" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/util/network_util.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8820">
-          <caret line="591" column="54" selection-start-line="591" selection-start-column="54" selection-end-line="591" selection-end-column="54" />
+        <state relative-caret-position="765">
+          <caret line="627" column="9" selection-start-line="627" selection-start-column="9" selection-end-line="627" selection-end-column="9" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
-            <marker date="1545757769404" expanded="true" signature="2261:2529" ph="..." />
-            <marker date="1545757769404" expanded="true" signature="11978:12020" ph="..." />
-            <marker date="1545757769404" expanded="true" signature="12039:12079" ph="..." />
-            <marker date="1545757769404" expanded="true" signature="28645:28650" ph="..." />
-            <marker date="1545757769404" expanded="true" signature="29457:30476" ph="..." />
-            <marker date="1545757769404" expanded="true" signature="38324:38329" ph="..." />
-            <marker date="1545757769404" expanded="true" signature="38495:38501" ph="..." />
+            <marker date="1545927100952" expanded="true" signature="2376:2644" ph="..." />
+            <marker date="1545927100952" expanded="true" signature="12000:12042" ph="..." />
+            <marker date="1545927100952" expanded="true" signature="12061:12101" ph="..." />
+            <marker date="1545927100952" expanded="true" signature="28667:28672" ph="..." />
+            <marker date="1545927100952" expanded="true" signature="29479:30498" ph="..." />
+            <marker date="1545927100952" expanded="true" signature="38346:38351" ph="..." />
+            <marker date="1545927100952" expanded="true" signature="38517:38523" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/networks/rnn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="287">
+          <caret line="73" column="73" selection-start-line="73" selection-start-column="73" selection-end-line="73" selection-end-column="73" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/runner/mnist2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5760">
-          <caret line="391" column="31" selection-start-line="373" selection-start-column="8" selection-end-line="391" selection-end-column="31" />
+        <state relative-caret-position="1650">
+          <caret line="147" column="9" selection-start-line="147" selection-start-column="9" selection-end-line="149" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/mnist.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="11" selection-start-line="11" selection-end-line="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/base_runner.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="13" column="26" selection-start-line="13" selection-start-column="26" selection-end-line="13" selection-end-column="26" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" column="63" selection-start-line="5" selection-start-column="63" selection-end-line="5" selection-end-column="63" />
+        <state relative-caret-position="90">
+          <caret line="6" column="71" selection-start-line="6" selection-start-column="71" selection-end-line="6" selection-end-column="71" />
           <folding>
-            <marker date="1545789883421" expanded="true" signature="40:45" ph="..." />
+            <marker date="1546025097340" expanded="true" signature="40:45" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/base_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="165">
+          <caret line="11" column="62" selection-start-line="11" selection-start-column="62" selection-end-line="11" selection-end-column="62" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/rnn_ptb.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1798">
+          <caret line="258" column="27" selection-start-line="258" selection-start-column="27" selection-end-line="258" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <marker date="1546025434509" expanded="true" signature="10320:10326" ph="..." />
+            <marker date="1546025434509" expanded="true" signature="11385:11392" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/rnn_mnist.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="215">
+          <caret line="263" column="39" selection-start-line="263" selection-start-column="39" selection-end-line="263" selection-end-column="39" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>

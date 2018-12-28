@@ -26,20 +26,26 @@ def get_rnn_cell(rnn_cell_type):
     cell_args = {}
     if rnn_cell_type == 'basic':
         cell_type = tf.contrib.rnn.BasicRNNCell
+        shape = 2
     elif rnn_cell_type == 'lstm':
         cell_type = tf.contrib.rnn.BasicLSTMCell
         cell_args['state_is_tuple'] = False
+        shape = 4
     elif rnn_cell_type == 'gru':
         cell_type = tf.contrib.rnn.GRUCell
+        shape = 3
     elif rnn_cell_type == 'norm_lstm':
         cell_type = tf.contrib.rnn.LayerNormBasicLSTMCell
+        shape = 4
     elif rnn_cell_type == 'mask_basic':
         cell_type = BasicMaskRNNCell
+        shape = 2
     elif rnn_cell_type == 'mask_lstm':
         cell_type = BasicMaskLSTMCell
+        shape = 4
     else:
         raise ValueError("Unsupported cell type: {}".format(rnn_cell_type))
-    return cell_type, cell_args
+    return cell_type, cell_args, shape
 
 
 def get_normalizer(normalizer_type, train=True):
@@ -291,7 +297,7 @@ class Recurrent_Network_with_mask(Recurrent_Network):
                  train, hidden_size, input_depth, seed=12345,
                  dtype=tf.float32, reuse=None, init_data=None):
         self._scope = scope
-        _cell_proto, _cell_kwargs = get_rnn_cell(recurrent_cell_type)
+        _cell_proto, _cell_kwargs, cell_shape = get_rnn_cell(recurrent_cell_type)
         self._activation_type = activation_type
         self._normalization_type = normalizer_type
         self._train = train
@@ -299,7 +305,7 @@ class Recurrent_Network_with_mask(Recurrent_Network):
         self._hidden_size = hidden_size
         with tf.variable_scope(scope):
             self._cell = _cell_proto(hidden_size, **_cell_kwargs, input_depth=input_depth,
-                seed=seed, init_data=init_data)
+                init_data=init_data, seed=seed)
 
     def __call__(self, input_tensor, hidden_states=None):
         with tf.variable_scope(self._scope, reuse=self._reuse):
@@ -319,10 +325,6 @@ class Recurrent_Network_with_mask(Recurrent_Network):
                 _rnn_outputs = \
                     normalizer(_rnn_outputs, 'normalizer_0')
         return _rnn_outputs, _rnn_states
-
-    def weights(self):
-        with tf.variable_scope(self._scope, reuse=self._reuse):
-            pass
 
     def set_weights(self, mask):
         self._cell.set_weights()

@@ -6,24 +6,27 @@ class RNNModel(BaseModel):
     def __init__(self, params, input_size, num_classes, seed, init):
         super(RNNModel, self).__init__(params)
 
-        init_data = \
-            {'w_init_method': 'normal', 'w_init_para': {'mean': 0,
-                'stddev':1/self.params.rnn_r_hidden}}
+        self.Network['Recurrent'] = []
 
-        if self.params.rnn_bidirectional:
-            pass
-        elif self.params.rnn_dilated:
-            pass
-        else:
-            self.Network['Recurrent'] = Recurrent_Network_with_mask(
-                scope='rnn', activation_type=self.params.rnn_r_act,
-                normalizer_type=self.params.rnn_r_norm,
-                recurrent_cell_type=self.params.rnn_cell_type,
-                train=True, hidden_size=self.params.rnn_r_hidden,
-                input_depth=input_size, init_data=init_data
-            )
+        for ii in range(len(self.params.rnn_r_hidden_seq)):
+            init_data = \
+                {'w_init_method': 'normc', 'w_init_para': {'stddev':1.0}}
 
-        network_shape = [self.params.rnn_r_hidden] + \
+            if self.params.rnn_bidirectional:
+                pass
+            elif self.params.rnn_dilated:
+                pass
+            else:
+                self.Network['Recurrent'].append(Recurrent_Network_with_mask(
+                    scope='rnn'+str(ii), activation_type=self.params.rnn_r_act_seq[ii],
+                    normalizer_type=self.params.rnn_r_norm_seq[ii],
+                    recurrent_cell_type=self.params.rnn_cell_type,
+                    train=True, hidden_size=self.params.rnn_r_hidden_seq[ii],
+                    input_depth=input_size, init_data=init_data
+                ))
+                input_size = self.params.rnn_r_hidden_seq[ii]
+
+        network_shape = [self.params.rnn_r_hidden_seq[-1]] + \
             self.params.rnn_l_hidden_seq + [num_classes]
 
         num_layer = len(network_shape) - 1
@@ -44,21 +47,31 @@ class RNNModel(BaseModel):
         )
 
     def __call__(self, input):
-        self.Tensor['Intermediate'] = self.Network['Recurrent'](input)[0]
-        print(self.Tensor['Intermediate'])
-        self.Tensor['Predictions'] = self.Network['Linear'](self.Tensor['Intermediate'])
-        print(self.Tensor['Predictions'])
+        self.Tensor['Intermediate'] = [None for _ in self.Network['Recurrent']]
+        for i, network in enumerate(self.Network['Recurrent']):
+            self.Tensor['Intermediate'][i] = network(input)[0]
+            input = self.Tensor['Intermediate'][i]
+        self.Tensor['Predictions'] = self.Network['Linear'](self.Tensor['Intermediate'][-1])
         return self.Tensor['Predictions']
 
     def weight_variables(self):
-        return self.Network['Recurrent'].weights() + self.Network['Linear'].weights()
+        weights = []
+        for net in self.Network['Recurrent']:
+            weights += net.weights()
+        return weights + self.Network['Linear'].weights()
 
     def get_mask(self):
-        return self.Network['Recurrent'].get_mask() + self.Network['Linear'].get_mask()
+        mask = []
+        for net in self.Network['Recurrent']:
+            mask += net.get_mask()
+        return mask + self.Network['Linear'].get_mask()
 
     def get_weighted_mask(self):
-        return self.Network['Recurrent'].get_weighted_mask() + \
-               self.Network['Linear'].get_weighted_mask()
+        weighted_mask = []
+        for net in self.Network['Recurrent']:
+            weighted_mask += net.get_weighted_mask()
+
+        return weighted_mask + self.Network['Linear'].get_weighted_mask()
 
 
 

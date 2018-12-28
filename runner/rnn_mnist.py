@@ -3,18 +3,42 @@ import tensorflow as tf
 from model.mask import *
 from runner.base_runner import *
 from util.optimizer_util import *
+from tensorflow import keras
 
 from data.load_pen import *
 
 ZERO_32 = tf.constant(0.0, dtype=tf.float32)
 
-class PTBRunner(BaseRunner):
+def get_mnist_dataset():
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    x_train = x_train.reshape(60000, 784)
+    x_test = x_test.reshape(10000, 784)
+    x_train = x_train.astype('float32')
+    x_test = x_test.astype('float32')
+
+    x_train = np.concatenate([x_train, x_test[:3000]], axis=0)
+    y_train = np.concatenate([y_train, y_test[:3000]], axis=0)
+    x_test = x_test[3000:]
+    y_test = y_test[3000:]
+
+    x_train /= 255
+    x_test /= 255
+
+    num_classes = 10
+    y_train = keras.utils.to_categorical(y_train, num_classes)
+    y_test = keras.utils.to_categorical(y_test, num_classes)
+
+    x_train = np.reshape(x_train, [-1, 28, 28])
+    x_test = np.reshape(x_test, [-1, 28, 28])
+    return (x_train, y_train), (x_test, y_test)
+
+class MNISTRunner(BaseRunner):
     def __init__(self, scope, params):
-        super(PTBRunner, self).__init__(scope, params)
+        super(MNISTRunner, self).__init__(scope, params)
 
         self.Mask = {}
-        self.Data, self.vocab_size = build_data("../data/simple-examples/data")
 
+        self.Data = get_mnist_dataset()
         self._build_outputs()
         self._build_summary()
         self.Writer = {}
@@ -33,34 +57,16 @@ class PTBRunner(BaseRunner):
 
     def _build_outputs(self):
         with tf.variable_scope(self.scope):
-            self.Tensor['Embedding'] = tf.get_variable('embedding',
-                [self.vocab_size, self.params.embed_size], dtype=tf.float32,
-                initializer=tf.initializers.random_uniform(-.1, .1))
 
             self.Model['Snip'] = Mask('snip', self.params,
-                self.params.embed_size, self.params.embed_size, self.params.seed)
+                28, 10, self.params.seed)
             self.Model['Random'] = Mask('random', self.params,
-                self.params.embed_size, self.params.embed_size, self.params.seed)
+                28, 10, self.params.seed)
 
             self.start_ix = 0
 
             self.Placeholder['Input_Feature'] = tf.placeholder(
-                shape=[None, None], dtype=tf.int32,
-            )
-
-            self.Tensor['Input_Embed'] = tf.nn.embedding_lookup(
-                self.Tensor['Embedding'], self.Placeholder['Input_Feature']
-            )
-
-            self.Tensor['SoftMax_W'] = tf.get_variable(
-                "softmax_w", [self.params.embed_size, self.vocab_size],
-                initializer=tf.initializers.random_uniform(-.1, .1),
-                dtype=tf.float32
-            )
-
-            self.Tensor['SoftMax_B'] = tf.get_variable(
-                "softmax_b", [self.vocab_size],
-                dtype=tf.float32
+                shape=[None, None, 28], dtype=tf.float32,
             )
 
             self.Placeholder['Learning_Rate'] = tf.placeholder(
@@ -68,31 +74,32 @@ class PTBRunner(BaseRunner):
             )
 
             self.Placeholder['Input_Label'] = tf.placeholder(
-                tf.int32, [None, None]
+                tf.int32, [None, 10]
             )
 
             self.Placeholder['Input_Logits'] = tf.placeholder(tf.float32,
-                [None, None, self.vocab_size])
+                [None, 10])
 
             self.Tensor['Proto_Minibatch'] = {
-                'Features': self.Tensor['Input_Embed'],
+                'Features': self.Placeholder['Input_Feature'],
                 'Labels': self.Placeholder['Input_Label']
             }
 
             self.Tensor['Loss_Function'] = \
-                Seq2SeqLoss
+                SoftmaxCE
+
+            self.Tensor['Recurrent_Loss_Function'] = \
+                SoftmaxSliceCE
 
             self.Output['Optimizer'] = get_optimizer(
                 self.params, self.Placeholder['Learning_Rate']
             )
 
             self.Model['Snip'].prune(
-                self.Tensor['Proto_Minibatch'], self.Tensor['Loss_Function'],
-                (self.Tensor['SoftMax_W'], self.Tensor['SoftMax_B'])
+                self.Tensor['Proto_Minibatch'], self.Tensor['Recurrent_Loss_Function']
             )
             self.Model['Random'].prune(
-                self.Tensor['Proto_Minibatch'], self.Tensor['Loss_Function'],
-                (self.Tensor['SoftMax_W'], self.Tensor['SoftMax_B'])
+                self.Tensor['Proto_Minibatch'], self.Tensor['Recurrent_Loss_Function']
             )
 
             self.Placeholder['Random_Mask'] = self.Model['Random'].Placeholder
@@ -101,21 +108,13 @@ class PTBRunner(BaseRunner):
             self.Tensor['Snip_Grad'] = self.Model['Snip'].Tensor['Snip_Grad']
             self.Tensor['Random_Grad'] = self.Model['Random'].Tensor['Snip_Grad']
 
-            self.Output['Random_Embed'] = self.Model['Random'].run(
-                self.Tensor['Input_Embed']
-            )
-            self.Output['Snip_Embed'] = self.Model['Snip'].run(
-                self.Tensor['Input_Embed']
-            )
-            self.Output['Random_Pred'] = tf.einsum('ijk,kl->ijl',
-                self.Output['Random_Embed'],
-                self.Tensor['SoftMax_W']) + \
-                self.Tensor['SoftMax_B']
+            self.Output['Random_Pred'] = self.Model['Random'].run(
+                self.Placeholder['Input_Feature']
+            )[:,-1]
 
-            self.Output['Snip_Pred'] = tf.einsum('ijk,kl->ijl',
-                self.Output['Snip_Embed'],
-                self.Tensor['SoftMax_W']) + \
-                self.Tensor['SoftMax_B']
+            self.Output['Snip_Pred'] = self.Model['Snip'].run(
+                self.Placeholder['Input_Feature']
+            )[:,-1]
 
             self.Output['Random_Loss'] = tf.reduce_mean(
                 self.Tensor['Loss_Function'](
@@ -150,8 +149,15 @@ class PTBRunner(BaseRunner):
                 self.Placeholder['Input_Label']
             )
         )
+        self.Output['Round'] = \
+            tf.argmax(self.Placeholder['Input_Logits'], 1)
 
-        self.Output['Error'] = tf.exp(self.Output['Loss'])
+        self.Output['Error'] = 1 - tf.reduce_mean(
+            tf.cast(tf.equal(
+                self.Output['Round'],
+                tf.argmax(self.Placeholder['Input_Label'], 1)
+            ), tf.float32)
+        )
 
         self.Summary['Train_Error'] = tf.summary.scalar(
             'Train_Error', self.Output['Error']
@@ -255,9 +261,7 @@ class PTBRunner(BaseRunner):
         return features, labels
 
     def val(self, i):
-        features, labels = self.Data['val']
-        features = features
-        labels = labels
+        features, labels = self.Data[1]
         # self.Dataset.test.images, self.Dataset.test.labels
 
         feed_dict = {
@@ -301,28 +305,24 @@ class PTBRunner(BaseRunner):
 
     def _get_batch(self):
         end_ix = self.start_ix + self.params.batch_size
-        if end_ix > len(self.Data['train'][0]):
-            end_ix = end_ix - len(self.Data['train'][0])
+        if end_ix > len(self.Data[0][0]):
+            end_ix = end_ix - len(self.Data[0][0])
 
             features = np.concatenate(
-                [self.Data['train'][0][self.start_ix:],
-                 self.Data['train'][0][end_ix:]],
+                [self.Data[0][0][self.start_ix:],
+                self.Data[0][0][:end_ix]],
                 axis=0
             )
             labels = np.concatenate(
-                [self.Data['train'][1][self.start_ix:],
-                 self.Data['train'][1][end_ix:]],
+                [self.Data[0][1][self.start_ix:],
+                self.Data[0][1][:end_ix]],
                 axis=0
             )
         else:
-            features = self.Data['train'][0][self.start_ix:end_ix]
-            labels = self.Data['train'][1][self.start_ix:end_ix]
+            features = self.Data[0][0][self.start_ix:end_ix]
+            labels = self.Data[0][1][self.start_ix:end_ix]
         self.start_ix = end_ix
-
-
-
         return features, labels
-
 
     def prune_together(self):
         total_shape, total_size, flat_grad = [], [], []
@@ -390,4 +390,3 @@ class PTBRunner(BaseRunner):
             ind = np.unravel_index(ind, zeros.shape)
 
             self.Mask['Snip'][self.Model['Snip'].Snip['Mask'][ix]] = zeros
-            self.Mask['Snip'][self.Model['Snip'].Snip['Mask'][ix]] = np.ones_like(self.Mask['Index'][ix])
