@@ -9,11 +9,11 @@ def get_base_parser():
 
     parser.add_argument('--decay_iter', type=int, default=1000)
 
-    parser.add_argument('--batch_size', type=int, default=100)
+    parser.add_argument('--batch_size', type=int, default=40)
     parser.add_argument('--num_steps', type=int, default=5000)
     parser.add_argument('--val_steps', type=int, default=50)
 
-    parser.add_argument('--seed', type=int, default=3451)
+    parser.add_argument('--seed', type=int, default=1347)
 
     parser.add_argument('--optimizer_type', type=str, default='adam')
     parser.add_argument('--momentum', type=float, default=0.9)
@@ -21,8 +21,9 @@ def get_base_parser():
     parser.add_argument('--weight_decay', type=float, default=0.0)
 
     parser.add_argument('--noise_delta', type=float, default=0.1)
-    parser.add_argument('--prune_k', type=float, default=0.95)
-    parser.add_argument('--random_k', type=float, default=0.95)
+    parser.add_argument('--prune_k', type=float, default=0.99)
+    parser.add_argument('--random_k', type=float, default=0.99)
+    parser.add_argument('--unit_k', type=float, default=0.99)
 
     parser.add_argument('--log_dir', type=str, default='../log/log')
     parser.add_argument('--model_type', type=str, default='rnn')
@@ -41,6 +42,9 @@ def get_base_parser():
     parser.add_argument('--max_length', type=int, default=55)
 
     parser.add_argument('--embed_size', type=int, default=400)
+
+    parser.add_argument('--num_unitwise', type=int, default=8)
+
 
     parser.add_argument('--l1_mask_penalty', type=float, default=0.00)
 

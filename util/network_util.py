@@ -42,11 +42,25 @@ def get_rnn_cell(rnn_cell_type):
         shape = 2
     elif rnn_cell_type == 'mask_lstm':
         cell_type = BasicMaskLSTMCell
+        cell_args['state_is_tuple'] = False
         shape = 4
     else:
         raise ValueError("Unsupported cell type: {}".format(rnn_cell_type))
     return cell_type, cell_args, shape
 
+def get_unitwise_rnn_cell(rnn_cell_type):
+    cell_args = {}
+    if rnn_cell_type == 'mask_basic':
+        pass
+        #cell_type = BasicUnitRNNCell
+        shape = 2
+    elif rnn_cell_type == 'mask_lstm':
+        cell_type = BasicUnitLSTMCell
+        cell_args['state_is_tuple'] = False
+        shape = 4
+    else:
+        raise ValueError("Unsupported cell type: {}".format(rnn_cell_type))
+    return cell_type, cell_args, shape
 
 def get_normalizer(normalizer_type, train=True):
     if normalizer_type == 'batch':
@@ -328,6 +342,116 @@ class Recurrent_Network_with_mask(Recurrent_Network):
 
     def set_weights(self, mask):
         self._cell.set_weights()
+
+    def weights(self):
+        return [self._cell._kernel]
+
+    def get_mask(self):
+        return [self._cell._mask]
+
+    def get_weighted_mask(self):
+        return [self._cell._combined]
+
+class Recurrent_Network_Unitwise(Recurrent_Network):
+    def __init__(self, scope, activation_type,
+                 normalizer_type, recurrent_cell_type,
+                 train, hidden_size, input_depth, num_unitwise=None, seed=12345,
+                 dtype=tf.float32, reuse=None, init_data=None):
+        print(num_unitwise)
+        self._scope = scope
+        self._use_lstm = True if 'lstm' in recurrent_cell_type else False
+        _cell_proto, _cell_kwargs, cell_shape = get_unitwise_rnn_cell(recurrent_cell_type)
+        self._activation_type = activation_type
+        self._normalization_type = normalizer_type
+        self._train = train
+        self._reuse = reuse
+        self._hidden_size = hidden_size
+
+        with tf.variable_scope(scope):
+            self._cell = _cell_proto(hidden_size, **_cell_kwargs, input_depth=input_depth,
+                init_data=init_data, seed=seed, num_unitwise=num_unitwise)
+    def __call__(self, input_tensor, hidden_states=None):
+        print(input_tensor, hidden_states)
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
+                self._cell, input_tensor, initial_state=hidden_states,
+                dtype=tf.float32
+            )
+
+            if self._activation_type is not None:
+                act_func = \
+                    get_activation_func(self._activation_type)
+                _rnn_outputs = \
+                    act_func(_rnn_outputs, name='activation_0')
+
+            if self._normalization_type is not None:
+                normalizer = get_normalizer(self._normalization_type,
+                                            train=self._train)
+                _rnn_outputs = \
+                    normalizer(_rnn_outputs, 'normalizer_0')
+        return _rnn_outputs, _rnn_states
+
+    def unitwise(self, input_tensor, hidden_states=None, distributions=None):
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+
+            input_shape = tf.shape(input_tensor)
+            _batch_size = input_shape[0]
+            _time_size = input_shape[1]
+            _dummy_outputs = tf.zeros(
+                [_batch_size, _time_size, 1]
+            )
+
+            def _cond(_input, _output_tensor, _i):
+                return _i < self._hidden_size
+
+            def _lambd(_input, _output_tensor, _i):
+                _rnn_outputs, _ = dynamic_unitwise_rnn(
+                    _i, self._cell, input_tensor, initial_state=hidden_states,
+                    use_lstm=self._use_lstm, hidden_size=self._hidden_size
+                )
+
+                _output_tensor = tf.concat(
+                    [_output_tensor, tf.expand_dims(_rnn_outputs[:,:,_i], 2)], axis=2
+                )
+                _i += 1
+                return _input, _output_tensor, _i
+
+            _, _rnn_outputs, _ = tf.while_loop(
+                _cond, _lambd,
+                [input_tensor, _dummy_outputs, tf.constant(0)],
+                shape_invariants=[input_tensor.get_shape(),
+                    tf.TensorShape((None, None, None)),
+                    tf.TensorShape(())]
+            )
+
+            _rnn_outputs = _rnn_outputs[:,:,1:]
+
+            if self._activation_type is not None:
+                act_func = \
+                    get_activation_func(self._activation_type)
+                _rnn_outputs = \
+                    act_func(_rnn_outputs, name='activation_0')
+
+            if self._normalization_type is not None:
+                normalizer = get_normalizer(self._normalization_type,
+                                            train=self._train)
+                _rnn_outputs = \
+                    normalizer(_rnn_outputs, 'normalizer_0')
+        return _rnn_outputs, None
+
+    def single_unit(self, input_tensor, hidden_states=None, distributions=None):
+        _, _rnn_outputs = dynamic_dummy_rnn(
+            self._cell, input_tensor, initial_state=hidden_states,
+            use_lstm=self._use_lstm, hidden_size=self._hidden_size
+        )
+
+        return _rnn_outputs
+
+    def dummy_weights(self):
+        return [self._cell._dummy_kernel, self._cell._dummy_bias]
+
+    def biases(self):
+        return [self._cell._bias]
 
     def weights(self):
         return [self._cell._kernel]

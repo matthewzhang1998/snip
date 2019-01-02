@@ -3,7 +3,7 @@ import argparse
 def rnn_parser(parser):
     parser.add_argument('--rnn_cell_type', type=str, default='mask_lstm')
 
-    parser.add_argument('--rnn_r_hidden_seq', type=str, default='256')
+    parser.add_argument('--rnn_r_hidden_seq', type=str, default='2000')
     parser.add_argument('--rnn_r_act_seq', type=str, default='none,none')
     parser.add_argument('--rnn_r_norm_seq', type=str, default='none,none')
     parser.add_argument('--rnn_l_hidden_seq', type=str, default=None)

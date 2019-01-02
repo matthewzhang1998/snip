@@ -1,7 +1,7 @@
 import init_path
 from config.base_config import *
 from config.rnn_config import *
-from runner.rnn_ptb import *
+from runner.rnn_ptb2 import *
 
 def main():
     import logging

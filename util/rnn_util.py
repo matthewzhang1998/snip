@@ -15,6 +15,124 @@ from util.network_util import *
 _BIAS_VARIABLE_NAME = "bias"
 _WEIGHTS_VARIABLE_NAME = "kernel"
 
+def unitwise_step(hidden_ix, cell, _input, _state, _output_tensor, _i):
+    _output, _next_state = cell.unitwise(hidden_ix, _input[:, _i], _state[:, _i])
+
+    _state = tf.concat(
+        [_state, tf.expand_dims(_next_state, 1)], axis=1
+    )
+
+    _output_tensor = tf.concat(
+        [_output_tensor, tf.expand_dims(_output, 1)], axis=1
+    )
+    _i += 1
+
+    return _input, _state, _output_tensor, _i
+
+def dummy_step(cell, _input, _state, _output_tensor, _i):
+    _output, _next_state = cell.dummy(_input[:, _i], _state[:, _i])
+
+    _state = tf.concat(
+        [_state, tf.expand_dims(_next_state, 1)], axis=1
+    )
+
+    _output_tensor = tf.concat(
+        [_output_tensor, tf.expand_dims(_output, 1)], axis=1
+    )
+    _i += 1
+
+    return _input, _state, _output_tensor, _i
+
+
+def _condition(_input, _state, _output_tensor, _i):
+    return _i < tf.shape(_input)[1]
+
+def dynamic_dummy_rnn(cell, input, initial_state, hidden_size, use_lstm=True):
+    _batch_size = tf.shape(input)[0]
+    _dummy_outputs = tf.zeros(
+        [_batch_size, 1, hidden_size]
+    )
+
+    if initial_state is None:
+        if use_lstm:
+            initial_state = tf.zeros(
+                [_batch_size, 1, 2 * hidden_size]
+            )
+        else:
+            initial_state = tf.zeros(
+                [_batch_size, 1, hidden_size]
+            )
+
+    # specify first two
+    _lambda = lambda a, b, c, d: dummy_step(cell, a, b, c, d)
+
+    if use_lstm:
+        _, _rnn_state_arr, _rnn_output_arr, _ = tf.while_loop(
+            _condition, _lambda,
+            [input, initial_state, _dummy_outputs, tf.constant(0)],
+            shape_invariants=[input.get_shape(),
+                              tf.TensorShape((None, None, 2 * hidden_size)),
+                              tf.TensorShape((None, None, hidden_size)),
+                              tf.TensorShape(())]
+        )
+
+    else:
+        _, _rnn_state_arr, _rnn_output_arr, _ = tf.while_loop(
+            _condition, _lambda,
+            [input, initial_state, _dummy_outputs, tf.constant(0)],
+            shape_invariants=[input.get_shape(),
+                              tf.TensorShape((None, None, hidden_size)),
+                              tf.TensorShape((None, None, hidden_size)),
+                              tf.TensorShape(())]
+        )
+
+    _rnn_state_arr = _rnn_state_arr[:, 1:]
+    _rnn_output_arr = _rnn_output_arr[:, 1:]
+    return _rnn_state_arr, _rnn_output_arr
+
+def dynamic_unitwise_rnn(ix, cell, input, initial_state, hidden_size, use_lstm=True):
+
+    _batch_size = tf.shape(input)[0]
+    _dummy_outputs = tf.zeros(
+        [_batch_size, 1, hidden_size]
+    )
+
+    if initial_state is None:
+        if use_lstm:
+            initial_state = tf.zeros(
+                [_batch_size, 1, 2*hidden_size]
+            )
+        else:
+            initial_state = tf.zeros(
+                [_batch_size, 1, hidden_size]
+            )
+
+    # specify first two
+    _lambda = lambda a, b, c, d: unitwise_step(ix, cell, a, b, c, d)
+
+    if use_lstm:
+        _, _rnn_state_arr, _rnn_output_arr, _ = tf.while_loop(
+            _condition, _lambda,
+            [input, initial_state, _dummy_outputs, tf.constant(0)],
+            shape_invariants=[input.get_shape(),
+              tf.TensorShape((None, None, 2*hidden_size)),
+              tf.TensorShape((None, None, hidden_size)),
+              tf.TensorShape(())]
+        )
+
+    else:
+        _, _rnn_state_arr, _rnn_output_arr, _ = tf.while_loop(
+            _condition, _lambda,
+            [input, initial_state, _dummy_outputs, tf.constant(0)],
+            shape_invariants=[input.get_shape(),
+                tf.TensorShape((None, None, hidden_size)),
+                tf.TensorShape((None, None, hidden_size)),
+                tf.TensorShape(())]
+        )
+
+    _rnn_state_arr = _rnn_state_arr[:,1:]
+    _rnn_output_arr = _rnn_output_arr[:, 1:]
+    return _rnn_state_arr, _rnn_output_arr
 
 def normc_initializer(shape, seed=1234, stddev=1.0, dtype=tf.float32):
     npr = np.random.RandomState(seed)
@@ -223,7 +341,7 @@ class BasicMaskLSTMCell(LayerRNNCell):
 
     def __init__(self, num_units,
                  use_peepholes=False, cell_clip=None,
-                 initializer=None, num_proj=None, proj_clip=None,
+                 initializer=None, num_proj=None, proj_clip=None, num_unitwise=None,
                  num_unit_shards=None, num_proj_shards=None, init_data=None,
                  forget_bias=1.0, state_is_tuple=True, input_depth=None, seed=None,
                  activation=None, reuse=None, name=None, dtype=None, **kwargs):
@@ -311,6 +429,9 @@ class BasicMaskLSTMCell(LayerRNNCell):
            seed=seed, trainable=True
         )
 
+        self._input_size = input_depth
+        self._num_unitwise = num_unitwise if num_unitwise is not None else 1
+
         self._kernel = self.add_variable(
             _WEIGHTS_VARIABLE_NAME,
             shape=[input_depth + h_depth, 4 * self._num_units],
@@ -320,6 +441,22 @@ class BasicMaskLSTMCell(LayerRNNCell):
         self._mask = tf.placeholder(
             shape=[input_depth + h_depth, 4 * self._num_units],
             dtype=tf.float32
+        )
+
+        if self.dtype is None:
+            initializer = init_ops.zeros_initializer
+        else:
+            initializer = init_ops.zeros_initializer(dtype=self.dtype)
+        self._bias = self.add_variable(
+            _BIAS_VARIABLE_NAME,
+            shape=[4 * self._num_units],
+            initializer=initializer)
+
+        self._dummy_kernel = tf.placeholder(
+            shape=[input_depth + self._num_units, 4*self._num_unitwise], dtype=tf.float32
+        )
+        self._dummy_bias = tf.placeholder(
+            shape=[4*self._num_unitwise], dtype=tf.float32
         )
 
         self._combined = self._kernel * self._mask
@@ -351,14 +488,6 @@ class BasicMaskLSTMCell(LayerRNNCell):
 
         input_depth = inputs_shape[-1]
         h_depth = self._num_units if self._num_proj is None else self._num_proj
-        if self.dtype is None:
-            initializer = init_ops.zeros_initializer
-        else:
-            initializer = init_ops.zeros_initializer(dtype=self.dtype)
-        self._bias = self.add_variable(
-            _BIAS_VARIABLE_NAME,
-            shape=[4 * self._num_units],
-            initializer=initializer)
         if self._use_peepholes:
             self._w_f_diag = self.add_variable("w_f_diag", shape=[self._num_units],
                                                initializer=self._initializer)
@@ -459,3 +588,142 @@ class BasicMaskLSTMCell(LayerRNNCell):
         }
         base_config = super(BasicMaskLSTMCell, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+class BasicUnitLSTMCell(BasicMaskLSTMCell):
+    def unitwise(self, ix, inputs, state):
+        num_proj = self._num_units if self._num_proj is None else self._num_proj
+        sigmoid = math_ops.sigmoid
+
+        if self._state_is_tuple:
+            raise NotImplementedError
+        else:
+            c_prev = array_ops.slice(state, [0, 0], [-1, self._num_units])
+            m_prev = array_ops.slice(state, [0, self._num_units], [-1, num_proj])
+
+        input_size = inputs.get_shape().with_rank(2)[1]
+        if input_size.value is None:
+            raise ValueError("Could not infer input size from inputs.get_shape()[-1]")
+
+        # i = input_gate, j = new_input, f = forget_gate, o = output_gate
+        i = tf.tensordot(
+            array_ops.concat([inputs, m_prev], 1),
+            tf.expand_dims(self._combined[:,ix], -1), axes=1) \
+            + self._bias[ix]
+
+        j = tf.tensordot(
+            array_ops.concat([inputs, m_prev], 1),
+            tf.expand_dims(self._combined[:, ix+self._num_units], -1), axes=1) \
+            + self._bias[ix+self._num_units]
+
+        f = tf.tensordot(
+            array_ops.concat([inputs, m_prev], 1),
+            tf.expand_dims(self._combined[:, ix+2*self._num_units], -1), axes=1) \
+            + self._bias[ix+2*self._num_units]
+
+        o = tf.tensordot(
+            array_ops.concat([inputs, m_prev], 1),
+            tf.expand_dims(self._combined[:, ix+3*self._num_units], -1), axes=1) \
+            + self._bias[ix+3*self._num_units]
+
+        # Diagonal connections
+        batch_size = tf.shape(inputs)[0]
+        random_shape = tf.stack([batch_size, tf.constant(self._num_units-1)])
+
+        random_f = tf.random.normal(random_shape, 0, 1)
+        random_i = tf.random.normal(random_shape, 0, 1)
+        random_j = tf.random.normal(random_shape, 0, 1)
+        random_o = tf.random.normal(random_shape, 0, 1)
+
+        i = tf.concat([random_i[:,:ix], i, random_i[:,ix:]], axis=-1)
+        j = tf.concat([random_j[:,:ix], j, random_j[:,ix:]], axis=-1)
+        o = tf.concat([random_o[:,:ix], o, random_o[:,ix:]], axis=-1)
+        f = tf.concat([random_f[:,:ix], f, random_f[:,ix:]], axis=-1)
+
+        if self._use_peepholes:
+            raise NotImplementedError
+        else:
+            c = (sigmoid(f + self._forget_bias) * c_prev + sigmoid(i) *
+                 self._activation(j))
+
+        if self._cell_clip is not None:
+            raise NotImplementedError
+        if self._use_peepholes:
+            raise NotImplementedError
+        else:
+            m = sigmoid(o) * self._activation(c)
+
+        if self._num_proj is not None:
+            raise NotImplementedError
+
+        new_state = (LSTMStateTuple(c, m) if self._state_is_tuple else
+                     array_ops.concat([c, m], 1))
+        return m, new_state
+
+    def dummy(self, inputs, state):
+        num_proj = self._num_units if self._num_proj is None else self._num_proj
+        sigmoid = math_ops.sigmoid
+
+        if self._state_is_tuple:
+            raise NotImplementedError
+        else:
+            c_prev = array_ops.slice(state, [0, 0], [-1, self._num_units])
+            m_prev = array_ops.slice(state, [0, self._num_units], [-1, num_proj])
+
+        input_size = inputs.get_shape().with_rank(2)[1]
+        if input_size.value is None:
+            raise ValueError("Could not infer input size from inputs.get_shape()[-1]")
+
+        # i = input_gate, j = new_input, f = forget_gate, o = output_gate
+        i = tf.matmul(
+            array_ops.concat([inputs, m_prev], 1),
+            self._dummy_kernel[:,:self._num_unitwise]) \
+            + self._dummy_bias[:self._num_unitwise]
+
+        j = tf.matmul(
+            array_ops.concat([inputs, m_prev], 1),
+            self._dummy_kernel[:,self._num_unitwise:2*self._num_unitwise]) \
+            + self._dummy_bias[self._num_unitwise:2*self._num_unitwise]
+
+        f = tf.matmul(
+            array_ops.concat([inputs, m_prev], 1),
+            self._dummy_kernel[:,2*self._num_unitwise:3*self._num_unitwise]) \
+            + self._dummy_bias[2*self._num_unitwise:3*self._num_unitwise]
+
+        o = tf.matmul(
+            array_ops.concat([inputs, m_prev], 1),
+            self._dummy_kernel[:,3*self._num_unitwise:]) \
+            + self._dummy_bias[3*self._num_unitwise:]
+
+        # Diagonal connections
+        batch_size = tf.shape(inputs)[0]
+        random_shape = tf.stack([batch_size, tf.constant(self._num_units - self._num_unitwise)])
+
+        random_f = tf.random.normal(random_shape, 0, 0.3)
+        random_i = tf.random.normal(random_shape, 0, 0.3)
+        random_j = tf.random.normal(random_shape, 0, 0.3)
+        random_o = tf.random.normal(random_shape, 0, 0.3)
+
+        i = tf.concat([i, random_i], axis=-1)
+        j = tf.concat([j, random_j], axis=-1)
+        o = tf.concat([o, random_o], axis=-1)
+        f = tf.concat([f, random_f], axis=-1)
+
+        if self._use_peepholes:
+            raise NotImplementedError
+        else:
+            c = (sigmoid(f + self._forget_bias) * c_prev + sigmoid(i) *
+                 self._activation(j))
+
+        if self._cell_clip is not None:
+            raise NotImplementedError
+        if self._use_peepholes:
+            raise NotImplementedError
+        else:
+            m = sigmoid(o) * self._activation(c)
+
+        if self._num_proj is not None:
+            raise NotImplementedError
+
+        new_state = (LSTMStateTuple(c, m) if self._state_is_tuple else
+                     array_ops.concat([c, m], 1))
+        return m, new_state
