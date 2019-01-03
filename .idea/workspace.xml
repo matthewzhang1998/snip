@@ -149,11 +149,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/runner/rnn_ptb3.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="359">
-              <caret line="31" column="9" selection-start-line="31" selection-start-column="9" selection-end-line="31" selection-end-column="9" />
+            <state relative-caret-position="345">
+              <caret line="319" column="22" selection-start-line="319" selection-start-column="22" selection-end-line="319" selection-end-column="22" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-                <marker date="1546535272692" expanded="true" signature="6947:8218" ph="..." />
+                <marker date="1546542023577" expanded="true" signature="6947:8218" ph="..." />
               </folding>
             </state>
           </provider>
@@ -195,7 +195,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>forget_bias</find>
       <find>self._bias</find>
       <find>unit_grad</find>
       <find>single_unit</find>
@@ -225,6 +224,7 @@
       <find>self.Writer</find>
       <find>shape</find>
       <find>np.zeros</find>
+      <find>run</find>
     </findStrings>
     <replaceStrings>
       <replace>num_layer</replace>
@@ -947,11 +947,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/runner/rnn_ptb3.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="359">
-          <caret line="31" column="9" selection-start-line="31" selection-start-column="9" selection-end-line="31" selection-end-column="9" />
+        <state relative-caret-position="345">
+          <caret line="319" column="22" selection-start-line="319" selection-start-column="22" selection-end-line="319" selection-end-column="22" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
-            <marker date="1546535272692" expanded="true" signature="6947:8218" ph="..." />
+            <marker date="1546542023577" expanded="true" signature="6947:8218" ph="..." />
           </folding>
         </state>
       </provider>

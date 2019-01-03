@@ -317,8 +317,7 @@ class PTBRunner(BaseRunner):
                 self.Writer[key].add_summary(summ, i)
 
     def run(self):
-        self.Sess.run(self.Model['Random'].initialize_op +
-                      self.Model['Unit'].initialize_op +
+        self.Sess.run(self.Model['Unit'].initialize_op +
                       [tf.variables_initializer(self.Output['Optimizer'].variables())])
         for e in range(self.params.num_steps):
             features, labels = self._get_batch()
