@@ -35,7 +35,9 @@ class BaseRunner(object):
         self.Output = {}
         self.Summary = {}
 
-        self.Sess = tf.Session()
+        config = tf.ConfigProto(allow_soft_placement=True)
+        config.gpu_options.allow_growth=True
+        self.Sess = tf.Session(config=config)
 
         self.Dir = get_dir(params.log_dir)
 
