@@ -43,7 +43,6 @@ def dummy_step(cell, _input, _state, _output_tensor, _i):
 
     return _input, _state, _output_tensor, _i
 
-
 def _condition(_input, _state, _output_tensor, _i):
     return _i < tf.shape(_input)[1]
 

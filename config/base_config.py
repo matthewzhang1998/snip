@@ -43,7 +43,7 @@ def get_base_parser():
 
     parser.add_argument('--embed_size', type=int, default=400)
 
-    parser.add_argument('--num_unitwise', type=int, default=8)
+    parser.add_argument('--num_unitwise', type=int, default=256)
 
 
     parser.add_argument('--l1_mask_penalty', type=float, default=0.00)
