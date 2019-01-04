@@ -7,7 +7,7 @@ def get_base_parser():
     parser.add_argument('--decay_scheme', type=str, default='exponential')
     parser.add_argument('--decay_rate', type=float, default=0.1)
 
-    parser.add_argument('--decay_iter', type=int, default=1000)
+    parser.add_argument('--decay_iter', type=int, default=10000)
 
     parser.add_argument('--batch_size', type=int, default=40)
     parser.add_argument('--num_steps', type=int, default=5000)
@@ -46,11 +46,12 @@ def get_base_parser():
     parser.add_argument('--min_length', type=int, default=50)
     parser.add_argument('--max_length', type=int, default=55)
 
-    parser.add_argument('--embed_size', type=int, default=100)
+    parser.add_argument('--embed_size', type=int, default=400)
 
-    parser.add_argument('--num_unitwise', type=int, default=256)
+    parser.add_argument('--num_unitwise', type=int, default=128)
 
     parser.add_argument('--l1_mask_penalty', type=float, default=0.00)
+    parser.add_argument('--val_size', type=int, default=20)
 
     return parser
 

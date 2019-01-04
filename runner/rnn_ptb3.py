@@ -5,6 +5,9 @@ from runner.base_runner import *
 from util.optimizer_util import *
 from model.unit2 import *
 from util.sparse_util import *
+from collections import defaultdict
+
+from tensorflow.contrib import slim
 
 from data.load_pen import *
 
@@ -36,14 +39,12 @@ class PTBRunner(BaseRunner):
 
     def _build_snip(self):
         with tf.variable_scope(self.scope):
-            initializer = lambda shape: self._npr.uniform(-.1, .1, shape)
-
             self.Tensor['Embedding'] = tf.get_variable('embedding',
                 [self.vocab_size, self.params.embed_size], dtype=tf.float32,
                 initializer=tf.initializers.random_uniform(-.1, .1))
 
-            self.Model['Random'] = Unit('random', self.params,
-                self.params.embed_size, self.params.embed_size, self.params.seed)
+            #self.Model['Random'] = Unit('random', self.params,
+            #    self.params.embed_size, self.params.embed_size, self.params.seed)
             self.Model['Unit'] = Unit('unit', self.params,
                 self.params.embed_size, self.params.embed_size, self.params.seed)
 
@@ -57,10 +58,9 @@ class PTBRunner(BaseRunner):
                 self.Tensor['Embedding'], self.Placeholder['Input_Feature']
             )
 
-            self.Tensor['SoftMax_W'] = get_random_sparse_matrix(
+            self.Tensor['SoftMax_W'] = tf.get_variable(
                 "softmax_w", [self.params.embed_size, self.vocab_size],
-                sparsity=self.params.softmax_sparsity, npr=self._npr,
-                initializer=initializer, dtype=tf.float32,
+                initializer=tf.initializers.random_uniform(-.1, .1), dtype=tf.float32,
             )
 
             self.Tensor['SoftMax_B'] = tf.get_variable(
@@ -188,36 +188,36 @@ class PTBRunner(BaseRunner):
         self._build_summary()
 
     def _build_networks(self, unit_list, random_list):
-        self.Model['Random'].build_sparse(random_list)
+        #self.Model['Random'].build_sparse(random_list)
         self.Model['Unit'].build_sparse(unit_list)
 
-        self.Output['Random_Embed'] = self.Model['Random'].run(
-            self.Tensor['Input_Embed']
-        )
+        # self.Output['Random_Embed'] = self.Model['Random'].run(
+        #     self.Tensor['Input_Embed']
+        # )
 
         self.Output['Unit_Embed'] = self.Model['Unit'].run(
             self.Tensor['Input_Embed']
         )
 
-        self.Output['Random_Pred'] = sparse_matmul(
-            self.Output['Random_Embed'], self.Tensor['SoftMax_W']) + self.Tensor['SoftMax_B']
+        # self.Output['Random_Pred'] = tf.einsum('ijk,kl->ijl',
+        #     self.Output['Random_Embed'], self.Tensor['SoftMax_W']) + self.Tensor['SoftMax_B']
 
-        self.Output['Unit_Pred'] = sparse_matmul(
+        self.Output['Unit_Pred'] = tf.einsum('ijk,kl->ijl',
             self.Output['Unit_Embed'], self.Tensor['SoftMax_W']) + self.Tensor['SoftMax_B']
 
-        self.Output['Random_Loss'] = tf.reduce_mean(
-            self.Tensor['Loss_Function'](
-                self.Output['Random_Pred'], self.Placeholder['Input_Label']
-            )
-        )
+        #self.Output['Random_Loss'] = tf.reduce_mean(
+        #    self.Tensor['Loss_Function'](
+        #        self.Output['Random_Pred'], self.Placeholder['Input_Label']
+        #    )
+        #)
 
         self.Output['Unit_Loss'] = tf.reduce_mean(
             self.Tensor['Loss_Function'](
                 self.Output['Unit_Pred'], self.Placeholder['Input_Label']
             )
         )
-        self.Output['Random_Train'] = \
-            self.Output['Optimizer'].minimize(self.Output['Random_Loss'])
+        #self.Output['Random_Train'] = \
+        #    self.Output['Optimizer'].minimize(self.Output['Random_Loss'])
         self.Output['Unit_Train'] = \
             self.Output['Optimizer'].minimize(self.Output['Unit_Loss'])
 
@@ -229,20 +229,37 @@ class PTBRunner(BaseRunner):
             )
         )
 
+        self.Placeholder['Val_Error'] = tf.placeholder(
+            dtype=tf.float32, shape=[]
+        )
+        self.Placeholder['Val_Loss'] = tf.placeholder(
+            dtype=tf.float32, shape=[]
+        )
+
         self.Output['Error'] = tf.exp(self.Output['Loss'])
+
+        self.val_res = {
+            'Val_Error': self.Output['Error'],
+            'Val_Loss': self.Output['Loss']
+        }
+
+        self.val_placeholder = {
+            'Val_Error': self.Placeholder['Val_Error'],
+            'Val_Loss': self.Placeholder['Val_Loss']
+        }
 
         self.Summary['Train_Error'] = tf.summary.scalar(
             'Train_Error', self.Output['Error']
         )
         self.Summary['Val_Error'] = tf.summary.scalar(
-            'Val_Error', self.Output['Error']
+            'Val_Error', self.Placeholder['Val_Error']
         )
 
         self.Summary['Train_Loss'] = tf.summary.scalar(
             'Train_Loss', tf.log(self.Output['Loss'])
         )
         self.Summary['Val_Loss'] = tf.summary.scalar(
-            'Val_Loss', tf.log(self.Output['Loss'])
+            'Val_Loss', tf.log(self.Placeholder['Val_Loss'])
         )
 
         #self.Summary['Weight'] = {}
@@ -254,7 +271,7 @@ class PTBRunner(BaseRunner):
         #    ]
 
         self.Output['Pred'] = {
-            'Random': self.Output['Random_Pred'],
+            #'Random': self.Output['Random_Pred'],
             'Unit': self.Output['Unit_Pred']
         }
 
@@ -267,7 +284,7 @@ class PTBRunner(BaseRunner):
             self.Summary['Val_Loss']
         ]
         self.train_op = [
-            self.Output['Random_Train'],
+            #self.Output['Random_Train'],
             self.Output['Unit_Train']
         ]
 
@@ -284,6 +301,7 @@ class PTBRunner(BaseRunner):
             [self.Output['Pred']] + self.train_op,
             feed_dict
         )
+        self.Writer['Unit'].add_run_metadata(self.Sess.rmd, 'train' + str(i))
         for key in pred:
             summary = self.Sess.run(
                 self.train_summary,
@@ -299,31 +317,55 @@ class PTBRunner(BaseRunner):
 
     def val(self, i):
         features, labels = self.Data['val']
-        features = features[:200]
-        labels = labels[:200]
-        # self.Dataset.test.images, self.Dataset.test.labels
 
-        feed_dict = {
-            self.Placeholder['Input_Feature']: features,
-            self.Placeholder['Input_Label']: labels,
-        }
-        pred = self.Sess.run(
-            [self.Output['Pred']], feed_dict)
+        ix = np.arange(len(features))
+        self._npr.shuffle(ix)
+        start = 0
+        summary = {'Unit': defaultdict(list),} #'Random': defaultdict(list)}
 
-        pred = pred[0]
-        for key in pred:
-            summary = self.Sess.run(
+        for k in range(self.params.val_size):
+            end = start + self.params.batch_size
+
+            b_feat = features[ix[start:end]]
+            b_lab = labels[ix[start:end]]
+            # self.Dataset.test.images, self.Dataset.test.labels
+
+            feed_dict = {
+                self.Placeholder['Input_Feature']: b_feat,
+                self.Placeholder['Input_Label']: b_lab,
+            }
+            pred = self.Sess.run(
+                [self.Output['Pred']], feed_dict)
+
+            pred = pred[0]
+            for key in pred:
+                b_summary = self.Sess.run(
+                    self.val_res,
+                    {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
+                )
+
+                for summ in b_summary:
+                    summary[key][summ].append(b_summary[summ])
+
+        for key in summary:
+            for summ in summary[key]:
+                summary[key][summ] = np.mean(summary[key][summ])
+
+            write_summary = self.Sess.run(
                 self.val_summary,
-                {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
+                {self.val_placeholder[summ]: summary[key][summ]
+                 for summ in summary[key]}
             )
-            for summ in summary:
+            for summ in write_summary:
                 self.Writer[key].add_summary(summ, i)
 
     def run(self):
         self.Sess.run([self.Model[key].initialize_op for key in self.Model]+
                       [tf.variables_initializer(self.Output['Optimizer'].variables())])
+
+        #slim.model_analyzer.analyze_vars(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES), print_info=True)
+
         for e in range(self.params.num_steps):
-            print(e)
             features, labels = self._get_batch()
             self.train(e, features, labels)
             if e % self.params.val_steps == 0:

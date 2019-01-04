@@ -40,9 +40,8 @@ class RNNModel(BaseModel):
                 {'w_init_method': 'xavier', 'w_init_para': {'uniform': False},
                  'b_init_method': 'constant', 'b_init_para': {'val': 0.0}}
             )
-        self.Network['Linear'] = SparseMLP(
+        self.Network['Linear'] = MLP(
             dims=network_shape, scope='mlp',
-            sparsity=self.params.mlp_sparsity,
             activation_type=act_type, normalizer_type=norm_type,
             train=True, init_data=init_data, seed=seed
         )
