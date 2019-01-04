@@ -8,9 +8,11 @@
       <change afterPath="$PROJECT_DIR$/main/tmp/data/t10k-labels-idx1-ubyte.gz" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/tmp/data/train-images-idx3-ubyte.gz" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/tmp/data/train-labels-idx1-ubyte.gz" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mxnet/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/base_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/base_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/rnn_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/rnn_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/ptb_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/ptb_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/sparse_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/sparse_util.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -32,7 +34,7 @@
     <session id="980581569">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.open.time.10" value="2" />
+          <entry key="project.open.time.10" value="3" />
           <entry key="project.open.time.11" value="3" />
           <entry key="project.open.time.12" value="2" />
           <entry key="project.open.time.13" value="3" />
@@ -44,29 +46,29 @@
           <entry key="project.open.time.23" value="2" />
           <entry key="project.open.time.30" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="20" />
+          <entry key="project.opened" value="21" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="194" />
+          <entry key="py" value="201" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="194" />
+          <entry key="Python" value="201" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="52" />
-          <entry key="py" value="63380" />
+          <entry key="py" value="64497" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="52" />
-          <entry key="Python" value="63380" />
+          <entry key="Python" value="64497" />
         </counts>
       </usages-collector>
     </session>
@@ -76,13 +78,13 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config/base_config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="224">
-              <caret line="50" column="63" selection-start-line="50" selection-start-column="63" selection-end-line="50" selection-end-column="63" />
+            <state relative-caret-position="149">
+              <caret line="38" column="66" selection-start-line="38" selection-start-column="66" selection-end-line="38" selection-end-column="66" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="75">
@@ -92,31 +94,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main/ptb_main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" column="20" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/model/networks/rnn_unit2.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="275">
-              <caret line="42" column="39" selection-start-line="42" selection-start-column="39" selection-end-line="42" selection-end-column="39" />
-              <folding>
-                <marker date="1546580951414" expanded="true" signature="2004:2974" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="22" column="27" lean-forward="true" selection-start-line="22" selection-start-column="27" selection-end-line="22" selection-end-column="27" />
+            <state relative-caret-position="315">
+              <caret line="84" column="26" selection-start-line="84" selection-start-column="26" selection-end-line="84" selection-end-column="26" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -125,14 +106,33 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/runner/rnn_ptb3.py">
+        <entry file="file://$USER_HOME$/anaconda3/envs/mlearning/lib/python3.6/site-packages/tensorflow/python/ops/sparse_ops.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="32" column="8" selection-start-line="32" selection-start-column="8" selection-end-line="32" selection-end-column="8" />
+            <state relative-caret-position="1470">
+              <caret line="137" column="31" selection-start-line="137" selection-start-column="31" selection-end-line="137" selection-end-column="31" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/mxnet/test.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="195">
+              <caret line="13" column="32" selection-start-line="13" selection-start-column="32" selection-end-line="13" selection-end-column="32" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-                <marker date="1546559496331" expanded="true" signature="7115:8353" ph="..." />
+                <marker date="1546633517816" expanded="true" signature="58:59" ph="..." />
+                <marker date="1546633517816" expanded="true" signature="574:579" ph="..." />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/anaconda3/envs/mlearning/lib/python3.6/site-packages/tensorflow/python/ops/gen_sparse_ops.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="8293">
+              <caret line="821" column="69" selection-start-line="821" selection-start-column="69" selection-end-line="821" selection-end-column="69" />
             </state>
           </provider>
         </entry>
@@ -171,8 +171,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/model/unit2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="690">
-              <caret line="49" column="54" selection-start-line="49" selection-start-column="54" selection-end-line="49" selection-end-column="54" />
+            <state relative-caret-position="95">
+              <caret line="48" column="57" selection-start-line="48" selection-start-column="57" selection-end-line="48" selection-end-column="57" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -204,10 +204,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>bias_va</find>
-      <find>tf.expand</find>
-      <find>recurre</find>
-      <find>placeholder</find>
       <find>self.train_su</find>
       <find>loss_function</find>
       <find>sparse_indice</find>
@@ -234,6 +230,10 @@
       <find>_sparse_matmul</find>
       <find>sparse_matmul</find>
       <find>sparse</find>
+      <find>use_sparse</find>
+      <find>sparse_tensor_dense_matmul</find>
+      <find>sparse_tensor_dense</find>
+      <find>int64</find>
     </findStrings>
     <replaceStrings>
       <replace>num_layer</replace>
@@ -245,7 +245,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/model/base_prune.py" />
         <option value="$PROJECT_DIR$/util/embedding_util.py" />
         <option value="$PROJECT_DIR$/model/networks/base_network.py" />
         <option value="$PROJECT_DIR$/runner/runner.py" />
@@ -293,9 +292,10 @@
         <option value="$PROJECT_DIR$/model/unit2.py" />
         <option value="$PROJECT_DIR$/runner/rnn_ptb3.py" />
         <option value="$PROJECT_DIR$/model/networks/rnn_unit2.py" />
+        <option value="$PROJECT_DIR$/config/rnn_config.py" />
         <option value="$PROJECT_DIR$/util/sparse_util.py" />
         <option value="$PROJECT_DIR$/config/base_config.py" />
-        <option value="$PROJECT_DIR$/config/rnn_config.py" />
+        <option value="$PROJECT_DIR$/mxnet/test.py" />
       </list>
     </option>
   </component>
@@ -311,6 +311,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -358,7 +359,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -387,28 +387,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.ptb_main">
-    <configuration name="load_pen" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="lotteryticket" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/data" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/data/load_pen.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.test">
     <configuration name="ptb_main" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="lotteryticket" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -493,20 +472,41 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="lotteryticket" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/mxnet" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mxnet/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
-      <item itemvalue="Python.load_pen" />
       <item itemvalue="Python.ptb_main" />
       <item itemvalue="Python.seq_mnist_main" />
       <item itemvalue="Python.seq_mnist_main2" />
       <item itemvalue="Python.rnn_ptb2" />
+      <item itemvalue="Python.test" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test" />
         <item itemvalue="Python.ptb_main" />
         <item itemvalue="Python.rnn_ptb2" />
         <item itemvalue="Python.seq_mnist_main2" />
         <item itemvalue="Python.seq_mnist_main" />
-        <item itemvalue="Python.load_pen" />
       </list>
     </recent_temporary>
   </component>
@@ -527,12 +527,12 @@
     <frame x="-3" y="31" width="1206" height="635" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.4925" visible="true" weight="0.3289225" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.4925" visible="true" weight="0.3289225" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49832216" weight="0.3974122" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -585,20 +585,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/util/norm_util.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/init_path.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/snip2.py" />
-    <entry file="file://$PROJECT_DIR$/main/lisp_main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="13" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/runner/mnist3.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1620">
@@ -862,6 +848,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main/ptb_main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="3" column="20" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/networks/rnn_unit2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="615">
+          <caret line="42" column="39" selection-start-line="42" selection-start-column="39" selection-end-line="42" selection-end-column="39" />
+          <folding>
+            <marker date="1546580951414" expanded="true" signature="2004:2974" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/rnn_ptb3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4320">
+          <caret line="296" column="65" selection-start-line="296" selection-start-column="65" selection-end-line="296" selection-end-column="65" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <marker date="1546559496331" expanded="true" signature="7115:8353" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/util/network_util.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1230">
@@ -889,16 +903,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model/unit2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="690">
-          <caret line="49" column="54" selection-start-line="49" selection-start-column="54" selection-end-line="49" selection-end-column="54" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/util/rnn_util.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="6480">
@@ -910,48 +914,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main/ptb_main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="20" selection-start-line="3" selection-start-column="20" selection-end-line="3" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/runner/rnn_ptb3.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="32" column="8" selection-start-line="32" selection-start-column="8" selection-end-line="32" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <marker date="1546559496331" expanded="true" signature="7115:8353" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model/networks/rnn_unit2.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="275">
-          <caret line="42" column="39" selection-start-line="42" selection-start-column="39" selection-end-line="42" selection-end-column="39" />
-          <folding>
-            <marker date="1546580951414" expanded="true" signature="2004:2974" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="22" column="27" lean-forward="true" selection-start-line="22" selection-start-column="27" selection-end-line="22" selection-end-column="27" />
+        <state relative-caret-position="315">
+          <caret line="84" column="26" selection-start-line="84" selection-start-column="26" selection-end-line="84" selection-end-column="26" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config/base_config.py">
+    <entry file="file://$USER_HOME$/anaconda3/envs/mlearning/lib/python3.6/site-packages/tensorflow/python/framework/op_def_library.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="224">
-          <caret line="50" column="63" selection-start-line="50" selection-start-column="63" selection-end-line="50" selection-end-column="63" />
+        <state relative-caret-position="15">
+          <caret line="338" column="6" selection-start-line="338" selection-start-column="6" selection-end-line="338" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/mlearning/lib/python3.6/site-packages/tensorflow/python/ops/gen_sparse_ops.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="8293">
+          <caret line="821" column="69" selection-start-line="821" selection-start-column="69" selection-end-line="821" selection-end-column="69" />
         </state>
       </provider>
     </entry>
@@ -959,6 +942,42 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
           <caret line="5" column="69" selection-start-line="5" selection-start-column="69" selection-end-line="5" selection-end-column="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/base_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="149">
+          <caret line="38" column="66" selection-start-line="38" selection-start-column="66" selection-end-line="38" selection-end-column="66" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model/unit2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="95">
+          <caret line="48" column="57" selection-start-line="48" selection-start-column="57" selection-end-line="48" selection-end-column="57" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/anaconda3/envs/mlearning/lib/python3.6/site-packages/tensorflow/python/ops/sparse_ops.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1470">
+          <caret line="137" column="31" selection-start-line="137" selection-start-column="31" selection-end-line="137" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mxnet/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="13" column="32" selection-start-line="13" selection-start-column="32" selection-end-line="13" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <marker date="1546633517816" expanded="true" signature="58:59" ph="..." />
+            <marker date="1546633517816" expanded="true" signature="574:579" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>

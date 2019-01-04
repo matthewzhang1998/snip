@@ -490,6 +490,8 @@ class SparseMLP(object):
                                 tf.concat([[-1], [output_shape[-1]]], axis=0)
                                 )
 
+        print(flat_input.shape)
+
         with tf.variable_scope(self._scope, reuse=self._reuse):
             for ii in range(self.num_layer):
                 with tf.variable_scope("layer_{}".format(ii),
