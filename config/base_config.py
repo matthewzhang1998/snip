@@ -33,6 +33,11 @@ def get_base_parser():
     parser.add_argument('--prune_method', type=str, default='together')
     parser.add_argument('--value_method', type=str, default='largest')
 
+    parser.add_argument('--embed_sparsity', type=float, default=0.95)
+    parser.add_argument('--softmax_sparsity', type=float, default=0.9)
+
+    parser.add_argument('--mlp_sparsity', type=float, default=0.9)
+
     parser.add_argument('--pretrain_learning_rate', type=float, default=1e-3)
     parser.add_argument('--pretrain_num_steps', type=int, default=10)
     parser.add_argument('--pretrain_weight_decay', type=float, default=0.00)
@@ -41,9 +46,9 @@ def get_base_parser():
     parser.add_argument('--min_length', type=int, default=50)
     parser.add_argument('--max_length', type=int, default=55)
 
-    parser.add_argument('--embed_size', type=int, default=400)
+    parser.add_argument('--embed_size', type=int, default=10)
 
-    parser.add_argument('--num_unitwise', type=int, default=256)
+    parser.add_argument('--num_unitwise', type=int, default=1)
 
 
     parser.add_argument('--l1_mask_penalty', type=float, default=0.00)

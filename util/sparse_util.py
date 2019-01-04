@@ -2,6 +2,46 @@ import tensorflow as tf
 import numpy as np
 from util.network_util import *
 
+def get_initializer(shape, init_method, init_para, seed):
+    npr = np.random.RandomState(seed)
+    if init_method == 'normc':
+        out = npr.randn(*shape).astype(np.float32)
+        out *= init_para['stddev'] \
+            / np.sqrt(np.square(out).sum(axis=0, keepdims=True))
+
+    elif init_method == 'normal':
+        out = npr.normal(loc=init_para['mean'], scale=init_para['stddev'],
+            size=shape)
+
+    elif init_method == 'xavier':
+        if init_para['uniform']:
+            out = npr.uniform(low=-np.sqrt(2/(shape[0]+shape[-1])),
+                high=np.sqrt(2/(shape[0]+shape[-1])),
+                size=shape)
+        else:
+            out = npr.normal(loc=0, scale=np.sqrt(2/(shape[0]+shape[-1])),
+                size=shape)
+
+    return out
+
+
+def get_random_sparse_matrix(scope, shape, dtype=None, initializer=None, sparsity=0.99, npr=None, seed=None):
+    seed = seed or 12345
+    npr = npr or np.random.RandomState(seed)
+    k_ix = int(np.prod(shape)*(1-sparsity))
+    sparse_values = initializer((k_ix,))
+    sparse_values = tf.Variable(sparse_values, dtype=dtype)
+
+    sparse_indices = []
+    for dim in shape:
+        sparse_indices.append(npr.randint(dim, size=k_ix))
+
+    sparse_indices = np.array(sparse_indices).T
+    print(sparse_values, sparse_indices.shape)
+    with tf.variable_scope(scope):
+        sparse_matrix = tf.SparseTensor(indices=sparse_indices, values=sparse_values, dense_shape=shape)
+    return sparse_matrix
+
 def get_tensor(sparse_values):
     trainable_var = tf.Variable(sparse_values),
     return
@@ -21,19 +61,27 @@ def get_sparse_weight_matrix(shape, sparse_list, out_type='sparse', dtype=tf.flo
 
     return sparse_weight_matrix, sparse_values
 
-def _sparse_linear(args, sparse_matrix, scope=None, use_sparse_mul=True):
+
+def sparse_matmul(args, sparse_matrix, scope=None, use_sparse_mul=True):
     if not isinstance(args, list):
         args = [args]
 
     # Now the computation.
+
+    if len(args) == 1:
+        # res = math_ops.matmul(args[0], sparse_matrix,b_is_sparse=True)
+        input = args[0]
+    else:
+        input = tf.concat(args, 1, )
+    output_shape = tf.shape(input)
+    input = tf.reshape(input,
+        tf.concat([[-1], [output_shape[-1]]], axis=0)
+    )
+    input = tf.transpose(input, perm=[1,0])
+
     with tf.variable_scope(scope or "Linear"):
         if use_sparse_mul:
             sparse_matrix = tf.sparse_transpose(sparse_matrix, perm=[1, 0])
-            if len(args) == 1:
-                # res = math_ops.matmul(args[0], sparse_matrix,b_is_sparse=True)
-                input = tf.transpose(args[0], perm=[1, 0])
-            else:
-                input = tf.transpose(tf.concat(args, 1, ), perm=[1, 0])
             res = tf.sparse_tensor_dense_matmul(sparse_matrix, input)
             res = tf.transpose(res, perm=[1, 0])
         else:
@@ -47,6 +95,9 @@ def _sparse_linear(args, sparse_matrix, scope=None, use_sparse_mul=True):
                 res = tf.matmul(sparse_matrix, input)
             res = tf.transpose(res, perm=[1, 0])
 
+    res = tf.reshape(res,
+        tf.concat([output_shape[:-1], [-1]], axis=0)
+    )
     return res
 
 def get_dummy_rnn_cell(rnn_cell_type):
@@ -211,7 +262,7 @@ class SparseLSTMCell(RNNCell):
                 c, h = tf.split(state, 2, 1)
             # concat = _linear([inputs, h], 4 * self._num_units, True)
 
-            concat = _sparse_linear([inputs, state], self._sparse_matrix) + self._bias
+            concat = sparse_matmul([inputs, state], self._sparse_matrix) + self._bias
             i, j, f, o = tf.split(concat, 4, 1)
 
             new_c = (c * tf.sigmoid(f + self._forget_bias) + tf.sigmoid(i) *
@@ -375,3 +426,95 @@ class SparseRecurrentNetwork(object):
                     normalizer(_rnn_outputs, 'normalizer_0')
         return _rnn_outputs, _rnn_states
 
+class SparseMLP(object):
+    """ Multi Layer Perceptron (MLP)
+                Note: the number of layers is N
+
+        Input:
+                dims: a list of N+1 int, number of hidden units (last one is the
+                output dimension)
+                act_func: a list of N activation functions
+                add_bias: a boolean, indicates whether adding bias or not
+                scope: tf scope of the model
+
+    """
+
+    def __init__(self, dims, scope, train, sparsity,
+                 activation_type, normalizer_type, init_data, seed=1,
+                 dtype=tf.float32, reuse=None):
+
+        self._scope = scope
+        self._sparsity = sparsity
+        self.num_layer = len(dims) - 1  # the last one is the output dim
+        self.dims = dims
+        self._w = [None] * self.num_layer
+        self._b = [None] * self.num_layer
+        self._train = train
+        self._last_dim = dims[-1]
+        self._reuse = reuse
+
+        self._activation_type = activation_type
+        self._normalizer_type = normalizer_type
+        self._init_data = init_data
+
+        # initialize variables
+        with tf.variable_scope(scope, reuse=reuse):
+            for ii in range(self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii)):
+                    dim_in, dim_out = dims[ii], dims[ii + 1]
+                    shape=[dim_in, dim_out]
+
+                    initializer = lambda shape: get_initializer(shape,
+                        init_method=self._init_data[ii]['w_init_method'],
+                        init_para=self._init_data[ii]['w_init_para'],
+                        seed=seed
+                    )
+
+                    self._w[ii] = get_random_sparse_matrix(scope='w'+str(ii),
+                        shape=shape, dtype=tf.float32, initializer=initializer,
+                        seed=seed, sparsity=sparsity)
+
+                    self._b[ii] = weight_variable(
+                        shape=[dim_out], name='bias',
+                        init_method=self._init_data[ii]['b_init_method'],
+                        init_para=self._init_data[ii]['b_init_para'],
+                        dtype=dtype, trainable=self._train,
+                        seed=seed
+                    )
+
+    def __call__(self, input_vec):
+        self._h = [None] * self.num_layer
+
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+                                tf.concat([[-1], [output_shape[-1]]], axis=0)
+                                )
+
+        with tf.variable_scope(self._scope, reuse=self._reuse):
+            for ii in range(self.num_layer):
+                with tf.variable_scope("layer_{}".format(ii),
+                                       reuse=tf.AUTO_REUSE):
+                    if ii == 0:
+                        self._h[ii] = sparse_matmul(flat_input, self._w[ii]) \
+                                      + self._b[ii]
+
+                    else:
+                        self._h[ii] = \
+                            sparse_matmul(self._h[ii - 1], self._w[ii]) \
+                            + self._b[ii]
+
+                    if self._activation_type[ii] is not None:
+                        act_func = \
+                            get_activation_func(self._activation_type[ii])
+                        self._h[ii] = \
+                            act_func(self._h[ii], name='activation_' + str(ii))
+
+                    if self._normalizer_type[ii] is not None:
+                        normalizer = get_normalizer(self._normalizer_type[ii],
+                                                    train=self._train)
+                        self._h[ii] = \
+                            normalizer(self._h[ii], 'normalizer_' + str(ii))
+
+        return tf.reshape(self._h[-1],
+            tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+        )

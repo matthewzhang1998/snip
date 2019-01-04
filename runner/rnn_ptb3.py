@@ -4,6 +4,7 @@ from model.mask import *
 from runner.base_runner import *
 from util.optimizer_util import *
 from model.unit2 import *
+from util.sparse_util import *
 
 from data.load_pen import *
 
@@ -13,10 +14,10 @@ class PTBRunner(BaseRunner):
     def __init__(self, scope, params):
         super(PTBRunner, self).__init__(scope, params)
 
-
         self._npr = np.random.RandomState(params.seed)
         self.Mask = {}
         self.Data, self.vocab_size = build_data("../data/simple-examples/data")
+        print(self.vocab_size)
 
         self._build_snip()
 
@@ -28,19 +29,21 @@ class PTBRunner(BaseRunner):
         self.learning_rate = params.learning_rate
         self.pretrain_learning_rate = params.pretrain_learning_rate
 
-        #self.Writer['Random'] = \
-        #    tf.summary.FileWriter(self.Dir+'/random', self.Sess.graph)
+        self.Writer['Random'] = \
+            tf.summary.FileWriter(self.Dir+'/random', self.Sess.graph)
         self.Writer['Unit'] = \
             tf.summary.FileWriter(self.Dir+'/unit', self.Sess.graph)
 
     def _build_snip(self):
         with tf.variable_scope(self.scope):
+            initializer = lambda shape: self._npr.uniform(-.1, .1, shape)
+
             self.Tensor['Embedding'] = tf.get_variable('embedding',
                 [self.vocab_size, self.params.embed_size], dtype=tf.float32,
                 initializer=tf.initializers.random_uniform(-.1, .1))
 
-            #self.Model['Random'] = Unit('random', self.params,
-            #    self.params.embed_size, self.params.embed_size, self.params.seed)
+            self.Model['Random'] = Unit('random', self.params,
+                self.params.embed_size, self.params.embed_size, self.params.seed)
             self.Model['Unit'] = Unit('unit', self.params,
                 self.params.embed_size, self.params.embed_size, self.params.seed)
 
@@ -54,10 +57,10 @@ class PTBRunner(BaseRunner):
                 self.Tensor['Embedding'], self.Placeholder['Input_Feature']
             )
 
-            self.Tensor['SoftMax_W'] = tf.get_variable(
+            self.Tensor['SoftMax_W'] = get_random_sparse_matrix(
                 "softmax_w", [self.params.embed_size, self.vocab_size],
-                initializer=tf.initializers.random_uniform(-.1, .1),
-                dtype=tf.float32
+                sparsity=self.params.softmax_sparsity, npr=self._npr,
+                initializer=initializer, dtype=tf.float32,
             )
 
             self.Tensor['SoftMax_B'] = tf.get_variable(
@@ -185,36 +188,36 @@ class PTBRunner(BaseRunner):
         self._build_summary()
 
     def _build_networks(self, unit_list, random_list):
-        #self.Model['Random'].build_sparse(random_list)
+        self.Model['Random'].build_sparse(random_list)
         self.Model['Unit'].build_sparse(unit_list)
 
-        #self.Output['Random_Embed'] = self.Model['Random'].run(
-        #    self.Tensor['Input_Embed']
-        #)
+        self.Output['Random_Embed'] = self.Model['Random'].run(
+            self.Tensor['Input_Embed']
+        )
 
         self.Output['Unit_Embed'] = self.Model['Unit'].run(
             self.Tensor['Input_Embed']
         )
 
-        #self.Output['Random_Pred'] = tf.einsum('ijk,kl->ijl',
-        #    self.Output['Random_Embed'], self.Tensor['SoftMax_W']) + self.Tensor['SoftMax_B']
+        self.Output['Random_Pred'] = sparse_matmul(
+            self.Output['Random_Embed'], self.Tensor['SoftMax_W']) + self.Tensor['SoftMax_B']
 
-        self.Output['Unit_Pred'] = tf.einsum('ijk,kl->ijl',
+        self.Output['Unit_Pred'] = sparse_matmul(
             self.Output['Unit_Embed'], self.Tensor['SoftMax_W']) + self.Tensor['SoftMax_B']
 
-        #self.Output['Random_Loss'] = tf.reduce_mean(
-        #    self.Tensor['Loss_Function'](
-        #        self.Output['Random_Pred'], self.Placeholder['Input_Label']
-        #    )
-        #)
+        self.Output['Random_Loss'] = tf.reduce_mean(
+            self.Tensor['Loss_Function'](
+                self.Output['Random_Pred'], self.Placeholder['Input_Label']
+            )
+        )
 
         self.Output['Unit_Loss'] = tf.reduce_mean(
             self.Tensor['Loss_Function'](
                 self.Output['Unit_Pred'], self.Placeholder['Input_Label']
             )
         )
-        #self.Output['Random_Train'] = \
-        #    self.Output['Optimizer'].minimize(self.Output['Random_Loss'])
+        self.Output['Random_Train'] = \
+            self.Output['Optimizer'].minimize(self.Output['Random_Loss'])
         self.Output['Unit_Train'] = \
             self.Output['Optimizer'].minimize(self.Output['Unit_Loss'])
 
@@ -251,7 +254,7 @@ class PTBRunner(BaseRunner):
         #    ]
 
         self.Output['Pred'] = {
-        #    'Random': self.Output['Random_Pred'],
+            'Random': self.Output['Random_Pred'],
             'Unit': self.Output['Unit_Pred']
         }
 
@@ -264,7 +267,7 @@ class PTBRunner(BaseRunner):
             self.Summary['Val_Loss']
         ]
         self.train_op = [
-        #    self.Output['Random_Train'],
+            self.Output['Random_Train'],
             self.Output['Unit_Train']
         ]
 
@@ -317,9 +320,10 @@ class PTBRunner(BaseRunner):
                 self.Writer[key].add_summary(summ, i)
 
     def run(self):
-        self.Sess.run(self.Model['Unit'].initialize_op +
+        self.Sess.run([self.Model[key].initialize_op for key in self.Model]+
                       [tf.variables_initializer(self.Output['Optimizer'].variables())])
         for e in range(self.params.num_steps):
+            print(e)
             features, labels = self._get_batch()
             self.train(e, features, labels)
             if e % self.params.val_steps == 0:

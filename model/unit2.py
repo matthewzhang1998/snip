@@ -1,6 +1,7 @@
 import tensorflow as tf
 from model.networks.rnn_unit2 import *
 from util.network_util import *
+from util.sparse_util import *
 
 def get_model(name):
     name = name.lower()
@@ -45,7 +46,7 @@ class Unit(object):
                 self.model.get_dummy_variables()
 
             if embed != None:
-                self.Tensor['Unit_Pred'] = tf.einsum('ijk,kl->ijl',
+                self.Tensor['Unit_Pred'] = sparse_matmul(
                     self.Tensor['Unit_Pred'], embed[0]) + embed[1]
 
             self.Tensor['Unit_Loss'] = tf.reduce_mean(loss_fnc(
