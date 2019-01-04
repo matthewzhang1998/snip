@@ -46,9 +46,9 @@ def get_base_parser():
     parser.add_argument('--min_length', type=int, default=50)
     parser.add_argument('--max_length', type=int, default=55)
 
-    parser.add_argument('--embed_size', type=int, default=10)
+    parser.add_argument('--embed_size', type=int, default=400)
 
-    parser.add_argument('--num_unitwise', type=int, default=1)
+    parser.add_argument('--num_unitwise', type=int, default=256)
 
 
     parser.add_argument('--l1_mask_penalty', type=float, default=0.00)
