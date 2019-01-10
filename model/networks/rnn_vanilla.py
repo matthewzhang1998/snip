@@ -7,6 +7,7 @@ class RNNModel(BaseModel):
     def __init__(self, params, input_size, output_size, seed, init_path,
             use_embedding=True, use_softmax=True):
         super(RNNModel, self).__init__(params)
+        self._npr = np.random.RandomState(seed)
 
         self.Network['Dummy'] = []
         self.Network['Type'] = []
@@ -16,7 +17,10 @@ class RNNModel(BaseModel):
         params = {'scope':'embed', 'hidden_size': self.params.embed_size,
                   'input_depth': input_size,}
 
-        load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+        if init_path is not None:
+            load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+        else:
+            load_mat = self._npr.uniform(-.1,.1, (input_size, self.params.embed_size))
         self.Network['Dummy'].append(DenseEmbedding(
             **params, init_matrix=load_mat))
         self.Network['Type'].append('embedding')
@@ -37,7 +41,13 @@ class RNNModel(BaseModel):
                           'train': True, 'scope': 'rnn' + str(ii),
                           }
 
-                load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+                if init_path is not None:
+                    load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+                else:
+                    load_mat = self._npr.normal(
+                         size=(input_size + 2* self.params.rnn_r_hidden_seq[ii],
+                         4*self.params.rnn_r_hidden_seq[ii])
+                    )
                 self.Network['Dummy'].append(DenseRecurrentNetwork(
                     **params, init_matrix=load_mat
                 ))
@@ -58,7 +68,10 @@ class RNNModel(BaseModel):
                 'activation_type': act_type, 'normalizer_type': norm_type,
                 'train':True, 'scope':'mlp'+str(ii),
             }
-            load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+            if init_path is not None:
+                load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+            else:
+                load_mat = self._npr.uniform(-.1,.1, (input_size, self.params.rnn_l_hidden_seq[ii]))
 
             self.Network['Dummy'].append(DenseFullyConnected(
                 **params, init_matrix=load_mat
@@ -76,7 +89,10 @@ class RNNModel(BaseModel):
               'train': True, 'scope': 'mlp' + str(ii),
         }
 
-        load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+        if init_path is not None:
+            load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+        else:
+            load_mat = self._npr.uniform(-.1, .1, (input_size, final_mlp_size))
         self.Network['Dummy'].append(DenseFullyConnected(
             **params, init_matrix=load_mat
         ))
@@ -90,7 +106,10 @@ class RNNModel(BaseModel):
                   }
 
 
-        load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+        if init_path is not None:
+            load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+        else:
+            load_mat = self._npr.uniform(-.1, .1, (self.params.embed_size, output_size))
         self.Network['Dummy'].append(DenseFullyConnected(
             **params, init_matrix=load_mat
         ))

@@ -58,6 +58,7 @@ def get_base_parser():
     parser.add_argument('--drw_k', type=int, default=0.95)
     parser.add_argument('--drw_temperature', type=int, default=0.00)
 
+    parser.add_argument('--weight_dir', type=str, default=None)
 
 
     return parser

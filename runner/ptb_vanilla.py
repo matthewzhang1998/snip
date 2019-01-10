@@ -39,7 +39,7 @@ class PTBRunner(BaseRunner):
     def _build_snip(self):
         with tf.variable_scope(self.scope):
             self.Model['Small'] = Vanilla('small', self.params,
-                self.vocab_size, self.vocab_size, init_path="../weights/rnn")
+                self.vocab_size, self.vocab_size, init_path=self.params.weight_dir)
 
             self.start_ix = 0
 
