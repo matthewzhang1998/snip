@@ -5,6 +5,7 @@ import tensorflow as tf
 from model.vanilla import *
 from runner.base_runner import *
 from util.optimizer_util import *
+from util.logger_util import *
 from model.snip import *
 from util.sparse_util import *
 import scipy.misc
@@ -34,7 +35,7 @@ class PTBRunner(BaseRunner):
         self.pretrain_learning_rate = params.pretrain_learning_rate
 
         self.Writer['Small'] = \
-            tf.summary.FileWriter(self.Dir+'/small', self.Sess.graph)
+            FileWriter(self.Dir+'/small', self.Sess.graph)
 
     def _build_snip(self):
         with tf.variable_scope(self.scope):
@@ -122,14 +123,14 @@ class PTBRunner(BaseRunner):
             'Small': self.Output['Small_Pred']
         }
 
-        self.train_summary = [
-            self.Summary['Train_Error'],
-            self.Summary['Train_Loss']
-        ]
-        self.val_summary = [
-            self.Summary['Val_Error'],
-            self.Summary['Val_Loss']
-        ]
+        self.train_summary = {
+            'Train_Error': self.Output['Error'],
+            'Train_Loss': tf.log(self.Output['Loss'])
+        }
+        self.val_summary = {
+            'Val_Error': self.Placeholder['Val_Error'],
+            'Val_Loss': tf.log(self.Placeholder['Val_Loss'])
+        }
         self.train_op = [
             self.Output['Small_Train']
         ]
@@ -156,9 +157,7 @@ class PTBRunner(BaseRunner):
                 {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
             )
 
-            for summ in summary:
-                self.Writer[key].add_summary(summ, i)
-                self.Writer[key].flush()
+            self.Writer[key].add_summary(summary, i)
 
         self.learning_rate = self.decay_lr(i, self.learning_rate)
         return features, labels
@@ -204,8 +203,7 @@ class PTBRunner(BaseRunner):
                 {self.val_placeholder[summ]: summary[key][summ]
                  for summ in summary[key]}
             )
-            for summ in write_summary:
-                self.Writer[key].add_summary(summ, i)
+            self.Writer[key].add_summary(write_summary, i)
 
     def run(self):
         #slim.model_analyzer.analyze_vars(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES), print_info=True)

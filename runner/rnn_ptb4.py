@@ -6,6 +6,7 @@ from model.mask import *
 from runner.base_runner import *
 from util.optimizer_util import *
 from model.unit3 import *
+from util.logger_util import *
 from util.sparse_util import *
 import scipy.misc
 from collections import defaultdict
@@ -34,9 +35,9 @@ class PTBRunner(BaseRunner):
         self.pretrain_learning_rate = params.pretrain_learning_rate
 
         self.Writer['Random'] = \
-            tf.summary.FileWriter(self.Dir+'/random', self.Sess.graph)
+            FileWriter(self.Dir+'/random', self.Sess.graph)
         self.Writer['Unit'] = \
-            tf.summary.FileWriter(self.Dir+'/unit', self.Sess.graph)
+            FileWriter(self.Dir+'/unit', self.Sess.graph)
 
     def _build_snip(self):
         with tf.variable_scope(self.scope):
@@ -116,7 +117,8 @@ class PTBRunner(BaseRunner):
                 top_vals = np.zeros((t_ix, 3), dtype=np.float32)
                 rand_vals = np.zeros((t_ix, 3), dtype=np.float32)
 
-                all_weights = np.zeros((ni+2*nh, 4*nh))
+                all_weights = np.load(osp.join('../weights/rnn', '{}.npy'.format(i)))
+
                 ix = 0
 
                 def normc_initializer(shape, npr, stddev=1.0):
@@ -125,19 +127,23 @@ class PTBRunner(BaseRunner):
                     return out
 
                 for j in range(nh//nu+1):
-                    weights = normc_initializer((ni+2*nh,4*nu), self._npr)
+                    weights = np.zeros((ni+2*nh, 4*nu))
                     if j != nh//nu:
-                        all_weights[:,j*nu:(j+1)*nu] = weights[:,:nu]
-                        all_weights[:, j*nu+nh:(j + 1)*nu+nh] = weights[:, nu:2*nu]
-                        all_weights[:, j*nu+2*nh:(j + 1)*nu+2*nh] = weights[:, 2*nu:3*nu]
-                        all_weights[:, j*nu+3*nh:(j + 1)*nu+3*nh] = weights[:, 3*nu:4*nu]
+                        weights[:, :nu] = all_weights[:,j*nu:(j+1)*nu]
+                        weights[:, nu:2 * nu] = all_weights[:, j*nu+nh:(j + 1)*nu+nh]
+                        weights[:, 2 * nu:3 * nu] = all_weights[:, j*nu+2*nh:(j + 1)*nu+2*nh]
+                        weights[:, 3 * nu:4 * nu] = all_weights[:, j*nu+3*nh:(j + 1)*nu+3*nh]
 
                     else:
                         nx = nh - j*nu
-                        all_weights[:, j*nu:nh] = weights[:,:nx]
-                        all_weights[:, j*nu+nh:2*nh] = weights[:, nu:nu+nx]
-                        all_weights[:, j*nu+2*nh:3*nh] = weights[:, 2*nu:2*nu+nx]
-                        all_weights[:, j*nu+3*nh:] = weights[:, 3*nu:3*nu+nx]
+                        weights[:, :nx] = all_weights[:, j*nu:nh]
+                        weights[:, nx:nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
+                        weights[:, nu:nu + nx] = all_weights[:, j*nu+nh:2*nh]
+                        weights[:, nu+nx:2*nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
+                        weights[:, 2 * nu:2 * nu + nx] = all_weights[:, j*nu+2*nh:3*nh]
+                        weights[:, 2*nu+nx:3*nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
+                        weights[:, 3 * nu:3 * nu + nx] = all_weights[:, j*nu+3*nh:]
+                        weights[:, 3*nu+nx:4*nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
 
                     feed_dict = {
                         self.Placeholder['Unit_Kernel'][i]: weights,
@@ -202,12 +208,7 @@ class PTBRunner(BaseRunner):
             top_vals = np.zeros((t_ix, 3))
             rand_vals = np.zeros((t_ix, 3))
 
-            def uniform_initializer(shape, npr, stddev=1.0):
-                out = npr.uniform(-.1, .1, shape).astype(np.float32)
-                out *= stddev / np.sqrt(np.square(out).sum(axis=0, keepdims=True))
-                return out
-
-            weights = uniform_initializer([ni,nh], self._npr)
+            weights = np.load(osp.join('../weights/rnn', '{}.npy'.format(i)))
             random_list = top_list = weights
             all_weights = weights
 
@@ -225,12 +226,7 @@ class PTBRunner(BaseRunner):
 
             t_ix = int(nh * ni * (1 - k_ratio))
 
-            def uniform_initializer(shape, npr, stddev=1.0):
-                out = npr.uniform(-.1, .1, shape).astype(np.float32)
-                out *= stddev / np.sqrt(np.square(out).sum(axis=0, keepdims=True))
-                return out
-
-            weights = uniform_initializer([ni,nh], self._npr)
+            weights = np.load(osp.join('../weights/rnn', '{}.npy'.format(i)))
             random_list = top_list = weights
             all_weights = weights
 
@@ -341,14 +337,14 @@ class PTBRunner(BaseRunner):
             'Unit': self.Output['Unit_Pred']
         }
 
-        self.train_summary = [
-            self.Summary['Train_Error'],
-            self.Summary['Train_Loss']
-        ]
-        self.val_summary = [
-            self.Summary['Val_Error'],
-            self.Summary['Val_Loss']
-        ]
+        self.train_summary = {
+            'Train_Error': self.Output['Error'],
+            'Train_Loss': tf.log(self.Output['Loss'])
+        }
+        self.val_summary = {
+            'Val_Error': self.Placeholder['Val_Error'],
+            'Val_Loss': tf.log(self.Placeholder['Val_Loss'])
+        }
         self.train_op = [
             self.Output['Random_Train'],
             self.Output['Unit_Train']
@@ -376,9 +372,7 @@ class PTBRunner(BaseRunner):
                 {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
             )
 
-            for summ in summary:
-                self.Writer[key].add_summary(summ, i)
-                self.Writer[key].flush()
+            self.Writer[key].add_summary(summary, i)
 
         self.learning_rate = self.decay_lr(i, self.learning_rate)
         return features, labels
@@ -424,8 +418,7 @@ class PTBRunner(BaseRunner):
                 {self.val_placeholder[summ]: summary[key][summ]
                  for summ in summary[key]}
             )
-            for summ in write_summary:
-                self.Writer[key].add_summary(summ, i)
+            self.Writer[key].add_summary(write_summary, i)
 
     def run(self):
         #slim.model_analyzer.analyze_vars(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES), print_info=True)
