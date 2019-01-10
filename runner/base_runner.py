@@ -4,7 +4,6 @@ import os.path as osp
 import tensorflow as tf
 from tensorflow.python.client import timeline
 from model.random import *
-from model.snip import *
 
 from util.logger_util import *
 
@@ -60,8 +59,8 @@ class BaseRunner(object):
 
 class LogSession(object):
     def __init__(self, Session, dir='/log'):
-        self.rmd = tf.RunMetadata()
-        self.opt = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        #self.rmd = tf.RunMetadata()
+        #self.opt = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         self.Sess = Session
         self.dir = dir
 
@@ -69,10 +68,10 @@ class LogSession(object):
 
         self.profiler = True
         self.graph = Session.graph
-        self.trace_file = tf.gfile.Open(name=osp.join(self.dir,'timeline'), mode='w')
+        #self.trace_file = tf.gfile.Open(name=osp.join(self.dir,'timeline'), mode='w')
 
     def run(self, outputs, feed_dict={}):
-        vals = self.Sess.run(outputs, feed_dict, options=self.opt, run_metadata=self.rmd)
+        vals = self.Sess.run(outputs, feed_dict,) #options=self.opt, run_metadata=self.rmd)
 
         return vals
 

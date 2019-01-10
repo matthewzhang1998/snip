@@ -3,6 +3,7 @@ import tensorflow as tf
 from model.mask import *
 from runner.base_runner import *
 from util.optimizer_util import *
+import scipy.misc
 from model.unit2 import *
 from util.sparse_util import *
 from collections import defaultdict
@@ -97,7 +98,6 @@ class PTBRunner(BaseRunner):
             )
 
             self.Placeholder['Unit_Kernel'] = self.Model['Unit'].Snip['Dummy_Kernel']
-            self.Placeholder['Unit_Bias'] = self.Model['Unit'].Snip['Dummy_Bias']
 
             self.Tensor['Unit_Grad'] = self.Model['Unit'].Tensor['Unit_Grad']
 
@@ -122,14 +122,10 @@ class PTBRunner(BaseRunner):
             return out
 
         for i in range(nh//nu+1):
-            print(i, nh//nu)
-
             weights = normc_initializer((self.params.embed_size+2*nh,4*nu), self._npr)
-            biases = np.zeros([nu*4])
 
             feed_dict = {
-                self.Placeholder['Unit_Kernel'][0]: weights,
-                self.Placeholder['Unit_Bias'][0]: biases,
+                self.Placeholder['Unit_Kernel']: weights,
                 self.Placeholder['Input_Feature']: features,
                 self.Placeholder['Input_Label']: labels,
             }
@@ -183,6 +179,9 @@ class PTBRunner(BaseRunner):
             self._npr.randint(4*nh, size=(t_ix,))]).T
         ]
         final_list = [top_vals[:,0], top_vals[:,1:]]
+        im = np.zeros((self.params.embed_size + 2 * nh, 4 * nh))
+        im[top_vals[:, 1].astype(np.int32), top_vals[:, 2].astype(np.int32)] = 1
+        scipy.misc.imsave(osp.join(self.Dir, 'rnn.jpg'), im)
 
         self._build_networks([final_list], [random_list])
         self._build_summary()
@@ -301,7 +300,6 @@ class PTBRunner(BaseRunner):
             [self.Output['Pred']] + self.train_op,
             feed_dict
         )
-        self.Writer['Unit'].add_run_metadata(self.Sess.rmd, 'train' + str(i))
         for key in pred:
             summary = self.Sess.run(
                 self.train_summary,

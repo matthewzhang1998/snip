@@ -90,8 +90,6 @@ class RNNModel(BaseModel):
 
     def get_dummy_variables(self):
         dummy_weights = []
-        dummy_biases = []
         for net in self.Network['Dummy']:
-            dummy_biases.append(net.bias)
             dummy_weights.append(net.weight)
-        return dummy_weights, dummy_biases
+        return dummy_weights

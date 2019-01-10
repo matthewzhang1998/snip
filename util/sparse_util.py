@@ -62,6 +62,14 @@ def get_sparse_weight_matrix(shape, sparse_list, out_type='sparse', dtype=tf.flo
     return sparse_weight_matrix, sparse_values
 
 
+def get_dense_weight_matrix(shape, sparse_list, dtype=tf.float32, name=''):
+    # Directly Initialize the sparse matrix
+    sparse_values, sparse_indices = sparse_list
+    sparse_indices = sparse_indices.astype(np.int32)
+    dense_arr = np.zeros(shape)
+    dense_arr[sparse_indices[:,0], sparse_indices[:,1]] = sparse_values
+    return tf.Variable(dense_arr, dtype=dtype)
+
 def sparse_matmul(args, sparse_matrix, scope=None, use_sparse_mul=True):
     if not isinstance(args, list):
         args = [args]
@@ -139,7 +147,7 @@ class SparseDummyLSTMCell(object):
         self._dummy_kernel = tf.placeholder(
             shape=[input_depth + 2*self._num_units, 4 * self._num_unitwise], dtype=tf.float32
         )
-        self._dummy_bias = tf.placeholder(
+        self._dummy_bias = tf.zeros(
             shape=[4 * self._num_unitwise], dtype=tf.float32
         )
 
@@ -180,10 +188,15 @@ class SparseDummyLSTMCell(object):
         batch_size = tf.shape(inputs)[0]
         random_shape = tf.stack([batch_size, tf.constant(self._num_units - self._num_unitwise)])
 
-        random_f = tf.random.normal(random_shape, 0, 0.3)
-        random_i = tf.random.normal(random_shape, 0, 0.3)
-        random_j = tf.random.normal(random_shape, 0, 0.3)
-        random_o = tf.random.normal(random_shape, 0, 0.3)
+        stddev_f = tf.nn.moments(f, axes=[0,1])[1]
+        stddev_i = tf.nn.moments(i, axes=[0,1])[1]
+        stddev_j = tf.nn.moments(j, axes=[0,1])[1]
+        stddev_o = tf.nn.moments(o,axes=[0,1])[1]
+
+        random_f = tf.random.normal(random_shape, 0, stddev_f)
+        random_i = tf.random.normal(random_shape, 0, stddev_i)
+        random_j = tf.random.normal(random_shape, 0, stddev_j)
+        random_o = tf.random.normal(random_shape, 0, stddev_o)
 
         i = tf.concat([i, random_i], axis=-1)
         j = tf.concat([j, random_j], axis=-1)
@@ -298,7 +311,6 @@ def _dynamic_rnn(cell, input, initial_state, hidden_size, use_lstm=True):
         [_batch_size, 1, hidden_size]
     )
 
-    print(use_lstm)
     if initial_state is None:
         if use_lstm:
             initial_state = tf.zeros(
@@ -377,13 +389,36 @@ class SparseDummyRecurrentNetwork(object):
         return _rnn_outputs, _rnn_states
 
     @property
-    def bias(self):
-        return self._cell._dummy_bias
-
-    @property
     def weight(self):
-        print(self._cell._dummy_kernel)
         return self._cell._dummy_kernel
+
+    def sample(self, input_vec):
+        output_shape = tf.shape(input_vec)
+
+        if self._use_lstm:
+            random_states = tf.random.normal(
+                shape=tf.concat([output_shape[:-1], tf.constant([2*self._hidden_size])], axis=0), stddev=0.3)
+
+        else:
+            random_states = tf.random.normal(
+                shape=tf.concat([output_shape[:-1], tf.constant([self._hidden_size])], axis=0), stddev=0.3)
+
+        random_output = tf.random.normal(
+            shape=tf.concat([output_shape[:-1], tf.constant([self._hidden_size])], axis=0), stddev=0.3)
+
+        if self._activation_type is not None:
+            act_func = \
+                get_activation_func(self._activation_type)
+            random_output = \
+                act_func(random_output, name='activation_0')
+
+        if self._normalization_type is not None:
+            normalizer = get_normalizer(self._normalization_type,
+                                        train=self._train)
+            random_output = \
+                normalizer(random_output, 'normalizer_0')
+
+        return random_output, random_states
 
 class SparseRecurrentNetwork(object):
     def __init__(self, scope, activation_type,
@@ -426,97 +461,243 @@ class SparseRecurrentNetwork(object):
                     normalizer(_rnn_outputs, 'normalizer_0')
         return _rnn_outputs, _rnn_states
 
-class SparseMLP(object):
-    """ Multi Layer Perceptron (MLP)
-                Note: the number of layers is N
-
-        Input:
-                dims: a list of N+1 int, number of hidden units (last one is the
-                output dimension)
-                act_func: a list of N activation functions
-                add_bias: a boolean, indicates whether adding bias or not
-                scope: tf scope of the model
-
-    """
-
-    def __init__(self, dims, scope, train, sparsity,
-                 activation_type, normalizer_type, init_data, seed=1,
-                 dtype=tf.float32, reuse=None):
+class SparseDummyFullyConnected(object):
+    def __init__(self, input_depth, hidden_size, scope,
+                 activation_type, normalizer_type, seed=1,
+                 num_unitwise=None, train=True):
 
         self._scope = scope
-        self._sparsity = sparsity
-        self.num_layer = len(dims) - 1  # the last one is the output dim
-        self.dims = dims
-        self._w = [None] * self.num_layer
-        self._b = [None] * self.num_layer
+        self.input_depth = input_depth
+        self.hidden_size = hidden_size
+        self.num_unitwise = num_unitwise
+        self.seed = seed
+
+        with tf.variable_scope(self._scope):
+            self.weight = tf.placeholder(shape=[input_depth, num_unitwise], dtype=tf.float32)
+            self._b = tf.zeros(shape=[hidden_size], dtype=tf.float32)
         self._train = train
-        self._last_dim = dims[-1]
-        self._reuse = reuse
 
         self._activation_type = activation_type
         self._normalizer_type = normalizer_type
-        self._init_data = init_data
-
-        # initialize variables
-        with tf.variable_scope(scope, reuse=reuse):
-            for ii in range(self.num_layer):
-                with tf.variable_scope("layer_{}".format(ii)):
-                    dim_in, dim_out = dims[ii], dims[ii + 1]
-                    shape=[dim_in, dim_out]
-
-                    initializer = lambda shape: get_initializer(shape,
-                        init_method=self._init_data[ii]['w_init_method'],
-                        init_para=self._init_data[ii]['w_init_para'],
-                        seed=seed
-                    )
-
-                    self._w[ii] = get_random_sparse_matrix(scope='w'+str(ii),
-                        shape=shape, dtype=tf.float32, initializer=initializer,
-                        seed=seed, sparsity=sparsity)
-
-                    self._b[ii] = weight_variable(
-                        shape=[dim_out], name='bias',
-                        init_method=self._init_data[ii]['b_init_method'],
-                        init_para=self._init_data[ii]['b_init_para'],
-                        dtype=dtype, trainable=self._train,
-                        seed=seed
-                    )
 
     def __call__(self, input_vec):
-        self._h = [None] * self.num_layer
-
         output_shape = tf.shape(input_vec)
         flat_input = tf.reshape(input_vec,
-                                tf.concat([[-1], [output_shape[-1]]], axis=0)
-                                )
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
 
-        print(flat_input.shape)
+        with tf.variable_scope(self._scope):
+            res = tf.matmul(flat_input, self.weight)
+            batch_size = tf.shape(flat_input)[0]
+            random_shape = tf.stack([batch_size,
+                tf.constant(self.hidden_size - self.num_unitwise)])
 
-        with tf.variable_scope(self._scope, reuse=self._reuse):
-            for ii in range(self.num_layer):
-                with tf.variable_scope("layer_{}".format(ii),
-                                       reuse=tf.AUTO_REUSE):
-                    if ii == 0:
-                        self._h[ii] = sparse_matmul(flat_input, self._w[ii]) \
-                                      + self._b[ii]
+            stddev = tf.nn.moments(res, axes=[0,1])[0]
 
-                    else:
-                        self._h[ii] = \
-                            sparse_matmul(self._h[ii - 1], self._w[ii]) \
-                            + self._b[ii]
+            random_res = tf.random.normal(random_shape, 0, stddev)
+            res = tf.concat([res, random_res], axis=1)
 
-                    if self._activation_type[ii] is not None:
-                        act_func = \
-                            get_activation_func(self._activation_type[ii])
-                        self._h[ii] = \
-                            act_func(self._h[ii], name='activation_' + str(ii))
+            if self._activation_type is not None:
+                act_func = \
+                    get_activation_func(self._activation_type)
+                res = \
+                    act_func(res, name='activation')
 
-                    if self._normalizer_type[ii] is not None:
-                        normalizer = get_normalizer(self._normalizer_type[ii],
-                                                    train=self._train)
-                        self._h[ii] = \
-                            normalizer(self._h[ii], 'normalizer_' + str(ii))
+            if self._normalizer_type is not None:
+                normalizer = get_normalizer(self._normalizer_type,
+                    train=self._train)
+                res = \
+                    normalizer(res, 'normalizer')
 
-        return tf.reshape(self._h[-1],
-            tf.concat([output_shape[:-1], [self._last_dim]], axis=0)
+        return tf.reshape(res,
+            tf.concat([output_shape[:-1], tf.constant([self.hidden_size])], axis=0)
+        )
+
+    def sample(self, input):
+        output_shape = tf.shape(input)
+
+        sample = tf.random.normal(stddev=0.1,
+            shape=tf.concat([output_shape[:-1],
+                tf.constant([self.hidden_size])], axis=0))
+
+        if self._activation_type is not None:
+            act_func = \
+                get_activation_func(self._activation_type)
+            sample = \
+                act_func(sample, name='activation')
+
+        if self._normalizer_type is not None:
+            normalizer = get_normalizer(self._normalizer_type,
+                                        train=self._train)
+            sample = \
+                normalizer(sample, 'normalizer')
+
+        return sample
+
+class SparseFullyConnected(object):
+
+    def __init__(self, input_depth, hidden_size, scope,
+                 activation_type, normalizer_type, sparse_list,
+                 train=True):
+
+        self._scope = scope
+        self.input_depth = input_depth
+        self.hidden_size = hidden_size
+
+        with tf.variable_scope(self._scope):
+            self.weight, self.var = get_sparse_weight_matrix([input_depth, hidden_size],
+                sparse_list, out_type='sparse', dtype=tf.float32, name='')
+            self._b = tf.Variable(tf.zeros(shape=[hidden_size], dtype=tf.float32))
+        self._train = train
+
+        self._activation_type = activation_type
+        self._normalizer_type = normalizer_type
+        self.initialize_op = tf.initialize_variables([self._b, self.var])
+
+    def __call__(self, input_vec):
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
+
+        with tf.variable_scope(self._scope):
+            res = sparse_matmul(flat_input, self.weight)
+
+            if self._activation_type is not None:
+                act_func = \
+                    get_activation_func(self._activation_type)
+                res = \
+                    act_func(res, name='activation')
+
+            if self._normalizer_type is not None:
+                normalizer = get_normalizer(self._normalizer_type,
+                    train=self._train)
+                res = \
+                    normalizer(res, 'normalizer')
+
+        return tf.reshape(res,
+            tf.concat([output_shape[:-1], tf.constant([self.hidden_size])], axis=0)
+        )
+
+class SparseDummyEmbedding(object):
+
+    def __init__(self, input_depth, hidden_size, scope,
+        seed=1):
+
+        self._scope = scope
+        self.input_depth = input_depth
+        self.hidden_size = hidden_size
+        self.seed = seed
+        with tf.variable_scope(self._scope):
+            self.weight = tf.placeholder(shape=[input_depth, hidden_size], dtype=tf.float32)
+
+    def __call__(self, input_vec):
+        output_shape = tf.shape(input_vec)
+
+        with tf.variable_scope(self._scope):
+            res = tf.nn.embedding_lookup(self.weight, input_vec)
+
+        return tf.reshape(res,
+            tf.concat([output_shape, tf.constant([self.hidden_size])], axis=0)
+        )
+
+    def sample(self, input):
+        output_shape = tf.shape(input)
+
+        embedding = tf.random.uniform([self.input_depth, self.hidden_size], -.1, .1, )
+
+        return tf.nn.embedding_lookup(embedding, input)
+
+class SparseEmbedding(object):
+    def __init__(self, input_depth, hidden_size, scope,
+        sparse_list, seed=1):
+
+        self._scope = scope
+        self.input_depth = input_depth
+        self.hidden_size = hidden_size
+        self.seed = seed
+
+        with tf.variable_scope(self._scope):
+            self.weight, self.var = get_sparse_weight_matrix(
+                [input_depth, hidden_size], sparse_list, out_type='dense')
+
+        self.initialize_op = tf.initialize_variables([self.var])
+
+    def __call__(self, input_vec):
+        output_shape = tf.shape(input_vec)
+
+        with tf.variable_scope(self._scope):
+            res = tf.nn.embedding_lookup(self.weight, input_vec)
+
+        return tf.reshape(res,
+            tf.concat([output_shape, tf.constant([self.hidden_size])], axis=0)
+        )
+
+class DenseFullyConnected(object):
+
+    def __init__(self, input_depth, hidden_size, scope,
+                 activation_type, normalizer_type, weight,
+                 train=True):
+
+        self._scope = scope
+        self.input_depth = input_depth
+        self.hidden_size = hidden_size
+        print(weight)
+
+        with tf.variable_scope(self._scope):
+            self.weight = tf.Variable(weight, dtype=tf.float32)
+            self._b = tf.Variable(tf.zeros(shape=[hidden_size], dtype=tf.float32))
+        self._train = train
+
+        self._activation_type = activation_type
+        self._normalizer_type = normalizer_type
+        self.initialize_op = tf.initialize_variables([self._b, self.weight])
+
+    def __call__(self, input_vec):
+        output_shape = tf.shape(input_vec)
+        flat_input = tf.reshape(input_vec,
+            tf.concat([[-1], [output_shape[-1]]], axis=0)
+        )
+
+        with tf.variable_scope(self._scope):
+            res = tf.matmul(flat_input, self.weight)
+
+            if self._activation_type is not None:
+                act_func = \
+                    get_activation_func(self._activation_type)
+                res = \
+                    act_func(res, name='activation')
+
+            if self._normalizer_type is not None:
+                normalizer = get_normalizer(self._normalizer_type,
+                    train=self._train)
+                res = \
+                    normalizer(res, 'normalizer')
+
+        return tf.reshape(res,
+            tf.concat([output_shape[:-1], tf.constant([self.hidden_size])], axis=0)
+        )
+
+class DenseEmbedding(object):
+    def __init__(self, input_depth, hidden_size, scope,
+        weight, seed=1):
+
+        self._scope = scope
+        self.input_depth = input_depth
+        self.hidden_size = hidden_size
+        self.seed = seed
+
+        with tf.variable_scope(self._scope):
+            self.weight = tf.Variable(weight, dtype=tf.float32)
+
+        self.initialize_op = tf.initialize_variables([self.weight])
+
+    def __call__(self, input_vec):
+        output_shape = tf.shape(input_vec)
+
+        with tf.variable_scope(self._scope):
+            res = tf.nn.embedding_lookup(self.weight, input_vec)
+
+        return tf.reshape(res,
+            tf.concat([output_shape, tf.constant([self.hidden_size])], axis=0)
         )

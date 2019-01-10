@@ -42,7 +42,7 @@ class Unit(object):
                 minibatch['Features']
             )
 
-            self.Snip['Dummy_Kernel'], self.Snip['Dummy_Bias'] = \
+            self.Snip['Dummy_Kernel'], = \
                 self.model.get_dummy_variables()
 
             if embed != None:
@@ -56,4 +56,4 @@ class Unit(object):
             # one layer case
             print(self.Snip['Dummy_Kernel'])
             self.Tensor['Unit_Grad'] = tf.gradients(
-                self.Tensor['Unit_Loss'], self.Snip['Dummy_Kernel'][0])*self.Snip['Dummy_Kernel'][0]
+                self.Tensor['Unit_Loss'], self.Snip['Dummy_Kernel'])*self.Snip['Dummy_Kernel']

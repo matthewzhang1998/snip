@@ -1,5 +1,5 @@
 import init_path
-from runner.mnist2 import *
+from runner.mnist6 import *
 from config.base_config import *
 from config.mlp_config import *
 
