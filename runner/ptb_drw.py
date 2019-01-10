@@ -317,7 +317,7 @@ class PTBRunner(BaseRunner):
             if rand_num > real_num:
                 new_x = self._npr.choice(zero_num, size=(rand_num - real_num,))
 
-                new_inds = [ind[ix][new_x] for ind in zero_inds]
+                new_inds = [ind[new_x] for ind in zero_inds]
                 new_mask[new_inds] = 1
 
             new_masks.append(new_mask)
