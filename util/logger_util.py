@@ -26,7 +26,7 @@ class FileWriter(object):
 
             self.f[key].write(str(i))
             self.f[key].write(',')
-            self.f[key].write(dict[key])
+            self.f[key].write(str(dict[key]))
             self.f[key].write('\n')
             self.f[key].flush()
 
