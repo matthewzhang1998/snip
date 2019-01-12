@@ -1,7 +1,8 @@
+import numpy as np
 import os.path as osp
 
 from model.networks.base_network import *
-from util.vanilla_util import *
+from util.sparse_util import *
 
 class RNNModel(BaseModel):
     def __init__(self, params, input_size, output_size, seed, init_path,
@@ -22,7 +23,7 @@ class RNNModel(BaseModel):
         else:
             load_mat = self._npr.uniform(-.1,.1, (input_size, self.params.embed_size))
         self.Network['Dummy'].append(DenseEmbedding(
-            **params, init_matrix=load_mat))
+            **params, weight=load_mat))
         self.Network['Type'].append('embedding')
         input_size = self.params.embed_size
         ix += 1
@@ -49,7 +50,7 @@ class RNNModel(BaseModel):
                          4*self.params.rnn_r_hidden_seq[ii])
                     )
                 self.Network['Dummy'].append(DenseRecurrentNetwork(
-                    **params, init_matrix=load_mat
+                    **params, weight=load_mat
                 ))
                 self.Network['Type'].append('rnn')
                 ix += 1
@@ -74,7 +75,7 @@ class RNNModel(BaseModel):
                 load_mat = self._npr.uniform(-.1,.1, (input_size, self.params.rnn_l_hidden_seq[ii]))
 
             self.Network['Dummy'].append(DenseFullyConnected(
-                **params, init_matrix=load_mat
+                **params, weight=load_mat
             ))
 
             self.Network['Type'].append('mlp')
@@ -94,7 +95,7 @@ class RNNModel(BaseModel):
         else:
             load_mat = self._npr.uniform(-.1, .1, (input_size, final_mlp_size))
         self.Network['Dummy'].append(DenseFullyConnected(
-            **params, init_matrix=load_mat
+            **params, weight=load_mat
         ))
         self.Network['Type'].append('mlp')
         ix += 1
@@ -111,7 +112,7 @@ class RNNModel(BaseModel):
         else:
             load_mat = self._npr.uniform(-.1, .1, (self.params.embed_size, output_size))
         self.Network['Dummy'].append(DenseFullyConnected(
-            **params, init_matrix=load_mat
+            **params, weight=load_mat
         ))
         self.Network['Type'].append('mlp')
 
