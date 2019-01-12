@@ -67,9 +67,6 @@ class MNISTRunner(BaseRunner):
 
         self.Placeholder['Input_Logits'] = tf.placeholder(tf.float32, [None, 10])
 
-        self.Placeholder['Random_Mask'] = self.Model['Random'].Placeholder
-        self.Placeholder['Snip_Mask'] = self.Model['Snip'].Placeholder
-
         self.Tensor['Proto_Minibatch'] = {
             'Features': self.Placeholder['Input_Feature'],
             'Labels': self.Placeholder['Input_Label']
@@ -83,6 +80,9 @@ class MNISTRunner(BaseRunner):
         )
 
         self.Tensor['Snip_Index'] = self.Model['Snip'].prune(
+            self.Tensor['Proto_Minibatch'], self.Tensor['Loss_Function']
+        )
+        self.Model['Random'].prune(
             self.Tensor['Proto_Minibatch'], self.Tensor['Loss_Function']
         )
 
@@ -222,11 +222,11 @@ class MNISTRunner(BaseRunner):
     def prune_separate(self):
         for ix in range(len(self.Mask['Index'])):
             grad = self.Mask['Index'][ix]
-            k = int((1-self.params.prune_k) * grad.size)
+            k = int((1-self.params.snip_k) * grad.size)
             zeros = np.zeros_like(grad)
 
             if self.params.prune_method == 'weighted':
-                k = (1 - self.params.prune_k) * grad.size
+                k = (1 - self.params.snip_k) * grad.size
                 k *= (ix/len(self.Mask['Index'])+0.5)
                 k = int(k)
 
@@ -259,7 +259,7 @@ class MNISTRunner(BaseRunner):
 
         flat_grad = np.concatenate(flat_grad, axis=0)
 
-        k = int((1 - self.params.prune_k) * flat_size)
+        k = int((1 - self.params.snip_k) * flat_size)
 
         zeros = np.zeros_like(flat_grad)
 
@@ -377,12 +377,12 @@ class MNISTRunner(BaseRunner):
 
             features = np.concatenate(
                 [self.Dataset[0][0][self.start_ix:],
-                self.Dataset[0][0][end_ix:]],
+                self.Dataset[0][0][:end_ix]],
                 axis=0
             )
             labels = np.concatenate(
                 [self.Dataset[0][1][self.start_ix:],
-                self.Dataset[0][1][end_ix:]],
+                self.Dataset[0][1][:end_ix]],
                 axis=0
             )
         else:

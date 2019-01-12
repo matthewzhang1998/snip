@@ -29,23 +29,21 @@ import tensorflow as tf
 
 Py3 = sys.version_info[0] == 3
 
-
 def _read_words(filename):
+    '''
+    :param filename: Path to data
+    :return: list of tokens
+    '''
     with tf.gfile.GFile(filename, "r") as f:
-        if Py3:
-            return f.read().replace("\n", "<eos>").split("<eos>")
-        else:
-            return f.read().decode("utf-8").replace("\n", "<eos>").split("<eos>")
-
-def _read_sent(filename):
-    with tf.gfile.GFile(filename, "r") as f:
-        if Py3:
-            return f.read().replace("\n", "<eos>").split()
-        else:
-            return f.read().decode("utf-8").replace("\n", "<eos>").split()
+        # return f.read().decode("utf-8").split('\n').split()
+        return f.read().split()
 
 def _build_vocab(filename):
-    data = _read_sent(filename)
+    '''
+    :param filename: Path to data (typically train)
+    :return: Dictionary which converts word tokens to index. Build based on word frequency
+    '''
+    data = _read_words(filename)
 
     counter = collections.Counter(data)
     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
@@ -55,21 +53,14 @@ def _build_vocab(filename):
 
     return word_to_id
 
-
-def _file_to_word_ids(filename, word_to_id, max_len=30):
+def _file_to_word_ids(filename, word_to_id):
+    '''
+    :param filename: Path to data
+    :param word_to_id: Dictionary which converts word tokens to index.
+    :return: List of token index
+    '''
     data = _read_words(filename)
-    new_data = []
-    for sent in data:
-        words = sent.split()
-        new_sent = [word_to_id[word] for word in words if word in word_to_id]
-        new_data.append(new_sent)
-
-    data = np.zeros([len(new_data), len(max(new_data, key = lambda x: len(x)))])
-    for i, j in enumerate(new_data):
-        data[i][0:len(j)] = j
-    data = data[:,:max_len+1]
-
-    return data
+    return [word_to_id[word] for word in data if word in word_to_id]
 
 
 def ptb_raw_data(data_path=None):
@@ -83,6 +74,7 @@ def ptb_raw_data(data_path=None):
         been extracted.
     Returns:
       tuple (train_data, valid_data, test_data, vocabulary)
+      vocabulary:  List which converts index to word token
       where each of the data objects can be passed to PTBIterator.
     """
 
@@ -90,34 +82,20 @@ def ptb_raw_data(data_path=None):
     valid_path = os.path.join(data_path, "ptb.valid.txt")
     test_path = os.path.join(data_path, "ptb.test.txt")
 
-    word_to_id = _build_vocab(train_path)
-    train_data = _file_to_word_ids(train_path, word_to_id)
-    valid_data = _file_to_word_ids(valid_path, word_to_id)
-    test_data = _file_to_word_ids(test_path, word_to_id)
-    vocabulary = len(word_to_id)
+    word_to_id = _build_vocab(train_path)  # build vocabulary use train dataset
+    # word_to_id is a dictionary with [word] as the key and [index/integer] as the value
+    train_data = np.array(_file_to_word_ids(train_path, word_to_id))
+    valid_data = np.array(_file_to_word_ids(valid_path, word_to_id))
+    test_data = np.array(_file_to_word_ids(test_path, word_to_id))
 
-    return train_data, valid_data, test_data, vocabulary
+    vocabulary = len(word_to_id)    # integer to token
+    return {'train': train_data,
+            'val': valid_data,
+            'test': test_data,
+            '_vocab': vocabulary}
 
-def build_data(data_path):
-    train, val, test, vocab_size = ptb_raw_data(data_path)
 
-    train_x = train[:, :-1]
-    train_y = train[:, 1:]
-
-    val_x = val[:, :-1]
-    val_y = val[:, 1:]
-
-    test_x = test[:, :-1]
-    test_y = test[:, 1:]
-
-    data = {'train': (train_x, train_y),
-        'val': (val_x, val_y),
-        'test': (test_x, test_y)
-    }
-
-    return data, vocab_size
-
-def ptb_producer(raw_data, batch_size, num_steps, name=None):
+def ptb_producer(raw_data, batch_size, num_steps, i, name=None):
     """Iterate on the raw PTB data.
     This chunks up raw_data into batches of examples and returns Tensors that
     are drawn from these batches.
@@ -132,40 +110,28 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
     Raises:
       tf.errors.InvalidArgumentError: if batch_size or num_steps are too high.
     """
-    with tf.name_scope(name, "PTBProducer", [raw_data, batch_size, num_steps]):
-        raw_data = tf.convert_to_tensor(raw_data, name="raw_data", dtype=tf.int32)
+    data_len = raw_data.size
+    batch_len = data_len // batch_size
+    data = np.reshape(raw_data[0: batch_size * batch_len], [batch_size, batch_len])
 
-        data_len = tf.size(raw_data)
-        batch_len = data_len // batch_size
-        data = tf.reshape(raw_data[0: batch_size * batch_len],
-                          [batch_size, batch_len])
-
-        epoch_size = (batch_len - 1) // num_steps
-        assertion = tf.assert_positive(
-            epoch_size,
-            message="epoch_size == 0, decrease batch_size or num_steps")
-        with tf.control_dependencies([assertion]):
-            epoch_size = tf.identity(epoch_size, name="epoch_size")
-
-        i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
-        x = tf.strided_slice(data, [0, i * num_steps],
-                             [batch_size, (i + 1) * num_steps])
-        x.set_shape([batch_size, num_steps])
-        y = tf.strided_slice(data, [0, i * num_steps + 1],
-                             [batch_size, (i + 1) * num_steps + 1])
-        y.set_shape([batch_size, num_steps])
+    epoch_size = (batch_len - 1) // num_steps
+    i = i % epoch_size
+    x = data[0:batch_size, i * num_steps:(i+1)*num_steps]
+    y = data[0:batch_size, i * num_steps+1:(i+1)*num_steps+1]
     return x, y
 
-class PTBInput(object):
-  """The input data."""
+class Dataset(object):
+    """The input data."""
+    def __init__(self, params, load_path):
+        self.batch_size = params.batch_size
+        self.num_steps = params.max_length
+        self.data = ptb_raw_data(load_path)
+        self.vocab_size = 10000 #self.data['_vocab']
+        self.i = {key: 0 for key in self.data}
 
-  def __init__(self, config, data, name=None):
-    self.batch_size = batch_size = config.batch_size
-    self.num_steps = num_steps = config.num_steps
-    self.epoch_size = ((len(data) // batch_size) - 1) // num_steps
-    self.input_data, self.targets = ptb_producer(
-        data, batch_size, num_steps, name=name
-    )
+    def get_batch(self, scope='train'):
+        self.i[scope] += 1
+        return ptb_producer(self.data[scope], self.batch_size, self.num_steps, self.i[scope])
 
 if __name__ == '__main__':
-    ptb_raw_data("simple-examples/data")
+    print(ptb_raw_data("simple-examples/data"))

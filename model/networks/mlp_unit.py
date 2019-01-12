@@ -40,9 +40,11 @@ class MLPModel(BaseModel):
 
         num_unitwise = min(self.params.num_unitwise_mlp, output_size)
 
-        self.Network['Dummy'].append(SparseDummyFullyConnected(
-            **params, seed=seed, num_unitwise=num_unitwise,
-        ))
+        self.Network['Dummy'].append(
+            SparseDummyFullyConnected(
+                **params, seed=seed, num_unitwise=num_unitwise,
+            )
+        )
 
         print(self.Network['Dummy'])
 
@@ -51,8 +53,9 @@ class MLPModel(BaseModel):
 
         self.initialize_op = []
         self.Tensor['Temp'] = [None for _ in self.Network['Dummy']]
+        self.Tensor['Weights'] = [None for _ in self.Network['Dummy']]
 
-    def build_sparse(self, sparse_var, ii):
+    def build_sparse(self, sparse_var, ii, use_dense):
         if self.Network['Type'][ii] == 'rnn':
             self.Network['Dummy'][ii] = SparseRecurrentNetwork(
                 **self.Network['Params'][ii], sparse_list=sparse_var
@@ -77,6 +80,8 @@ class MLPModel(BaseModel):
 
             else:
                 self.Tensor['Intermediate'][i] = network(input)
+
+            self.Tensor['Weights'][i] = network.var
 
             input = self.Tensor['Intermediate'][i]
         return self.Tensor['Intermediate'][-1]
@@ -111,3 +116,13 @@ class MLPModel(BaseModel):
         for net in self.Network['Dummy']:
             dummy_weights.append(net.weight)
         return dummy_weights
+
+    def get_roll_variables(self):
+        dummy_roll = []
+        for ix,net in enumerate(self.Network['Dummy']):
+            if self.Network['Type'][ix] == 'mlp':
+                dummy_roll.append(net.roll)
+
+            else:
+                dummy_roll.append(None)
+        return dummy_roll

@@ -81,6 +81,7 @@ class MNISTRunner(BaseRunner):
             )
 
             self.Tensor['Unit_Grad'] = self.Model['Unit'].Tensor['Unit_Grad']
+            self.Placeholder['Unit_Roll'] = self.Model['Unit'].Snip['Roll']
 
             self.Placeholder['Unit_Kernel'] = self.Model['Unit'].Snip['Dummy_Kernel']
 
@@ -109,28 +110,30 @@ class MNISTRunner(BaseRunner):
 
         if info['scope'] == 'softmax':
             k_ratio = self.params.softmax_sparsity
+        elif i == len(self.Model['Unit'].Snip['Dummy_Kernel']) - 1:
+            k_ratio = self.params.unit_k
         elif 'mlp' in info['scope']:
-            k_ratio = self.params.mlp_sparsity
+            k_ratio = self.params.unit_k
         else:
             k_ratio = 0.99
 
-        h_ix = int((1 - self.params.unit_k) * ni * nh / (nh // nu + 1))
+        h_ix = int((1 - k_ratio) * ni * nh / (nh // nu + 1))
         t_ix = h_ix * (nh // nu + 1)
         top_vals = np.zeros((t_ix, 3))
         ix = 0
 
-        def uniform_initializer(shape, npr, stddev=1.0):
-            out = npr.uniform(-.1, .1, shape).astype(np.float32)
-            out *= stddev / np.sqrt(np.square(out).sum(axis=0, keepdims=True))
+        def xavier_initializer(shape, npr, stddev=1.0):
+            out = npr.normal(scale=np.sqrt(2/(shape[0]+shape[1])), size=shape).astype(np.float32)
             return out
 
         grad_im = np.zeros((ni, nu*(nh//nu+1)))
 
         for j in range(nh // nu + 1):
-            weights = uniform_initializer((ni, nu), self._npr)
+            weights = xavier_initializer((ni, nu), self._npr)
 
             feed_dict = {
                 self.Placeholder['Unit_Kernel'][i]: weights,
+                self.Placeholder['Unit_Roll'][i]: [j*nu],
                 self.Placeholder['Input_Feature']: features,
                 self.Placeholder['Input_Label']: labels,
             }
@@ -169,12 +172,12 @@ class MNISTRunner(BaseRunner):
         scipy.misc.imsave(osp.join(self.Dir, 'grad_{}.jpg'.format(info['scope'])), grad_im)
         scipy.misc.imsave(osp.join(self.Dir, '{}.jpg'.format(info['scope'])), im)
 
-        self._build_networks(final_list, random_list, i)
+        self._build_networks(final_list, random_list, i, use_dense=True)
         self.Sess.run(self.Tensor['Variable_Initializer'])
 
-    def _build_networks(self, unit_list, random_list, i):
-        self.Model['Random'].build_sparse(random_list, i)
-        self.Model['Unit'].build_sparse(unit_list, i)
+    def _build_networks(self, unit_list, random_list, i, use_dense=True):
+        self.Model['Random'].build_sparse(random_list, i, use_dense)
+        self.Model['Unit'].build_sparse(unit_list, i, use_dense)
 
         if i != 0:
             self.Model['Unit'].unit(
@@ -213,6 +216,16 @@ class MNISTRunner(BaseRunner):
                     self.Output['Unit_Pred'], self.Placeholder['Input_Label']
                 )
             )
+
+            self.Output['Random_Loss'] += self.params.weight_decay * \
+            tf.reduce_sum(
+                [tf.nn.l2_loss(t) for t in self.Model['Random'].Tensor['Weights']]
+            )
+            self.Output['Unit_Loss'] += self.params.weight_decay * \
+              tf.reduce_sum(
+                  [tf.nn.l2_loss(t) for t in self.Model['Unit'].Tensor['Weights']]
+              )
+
             self.Output['Random_Train'] = \
                self.Output['Optimizer'].minimize(self.Output['Random_Loss'])
             self.Output['Unit_Train'] = \

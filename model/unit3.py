@@ -30,6 +30,9 @@ class Unit(object):
         self.Op = {}
 
         self.Snip['Dummy_Kernel'] = self.model.get_dummy_variables()
+        if 'mlp' in self.model.Network['Type']:
+            self.Snip['Roll'] = self.model.get_roll_variables()
+
         self.Tensor['Unit_Grad'] = [None for _ in self.Snip['Dummy_Kernel']]
         self.Info['Type'] = self.model.Network['Type']
         self.Info['Params'] = self.model.Network['Params']
@@ -42,6 +45,10 @@ class Unit(object):
     def run(self, features):
         with tf.variable_scope(self.scope+'/'):
             self.Tensor['Predictions'] = self.model(features)
+
+            if 'Weights' in self.model.Tensor:
+                self.Tensor['Weights'] = self.model.Tensor['Weights']
+
             return self.Tensor['Predictions']
 
     def unit(self, minibatch, loss_fnc, ii):

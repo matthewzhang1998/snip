@@ -23,7 +23,8 @@ class PTBRunner(BaseRunner):
 
         self._npr = np.random.RandomState(params.seed)
         self.Mask = {}
-        self.Data, self.vocab_size = build_data("../data/simple-examples/data")
+        self.Data = Dataset(self.params, "../data/simple-examples/data")
+        self.vocab_size = self.Data.vocab_size
         self._build_snip()
 
         self._build_summary()
@@ -163,18 +164,13 @@ class PTBRunner(BaseRunner):
         return features, labels
 
     def val(self, i):
-        features, labels = self.Data['val']
-
-        ix = np.arange(len(features))
-        self._npr.shuffle(ix)
         start = 0
         summary = {'Small': defaultdict(list)}
 
         for k in range(self.params.val_size):
             end = start + self.params.batch_size
 
-            b_feat = features[ix[start:end]]
-            b_lab = labels[ix[start:end]]
+            b_feat, b_lab = self._get_batch('val')
             # self.Dataset.test.images, self.Dataset.test.labels
 
             feed_dict = {
@@ -225,23 +221,5 @@ class PTBRunner(BaseRunner):
 
         return learning_rate
 
-    def _get_batch(self):
-        end_ix = self.start_ix + self.params.batch_size
-        if end_ix > len(self.Data['train'][0]):
-            end_ix = end_ix - len(self.Data['train'][0])
-
-            features = np.concatenate(
-                [self.Data['train'][0][self.start_ix:],
-                 self.Data['train'][0][:end_ix]],
-                axis=0
-            )
-            labels = np.concatenate(
-                [self.Data['train'][1][self.start_ix:],
-                 self.Data['train'][1][:end_ix]],
-                axis=0
-            )
-        else:
-            features = self.Data['train'][0][self.start_ix:end_ix]
-            labels = self.Data['train'][1][self.start_ix:end_ix]
-        self.start_ix = end_ix
-        return features, labels
+    def _get_batch(self, type='train'):
+        return self.Data.get_batch(type)

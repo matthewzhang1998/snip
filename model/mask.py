@@ -32,7 +32,6 @@ class Mask(Pruner):
 
             self.Tensor['Snip_Grad'] = tf.gradients(
                 self.Tensor['Snip_Loss'], self.Snip[self.params.grad_param])
-            ratio = tf.constant(1-self.params.prune_k, tf.float32)
 
             self.Tensor['Snip_Index'] = []
             return self.Tensor['Snip_Index']

@@ -464,17 +464,23 @@ class SparseRecurrentNetwork(object):
 class SparseDummyFullyConnected(object):
     def __init__(self, input_depth, hidden_size, scope,
                  activation_type, normalizer_type, seed=1,
-                 num_unitwise=None, train=True):
+                 num_unitwise=None, train=True, use_bias=True):
 
         self._scope = scope
         self.input_depth = input_depth
         self.hidden_size = hidden_size
         self.num_unitwise = num_unitwise
+
+        self.use_bias = use_bias
         self.seed = seed
 
         with tf.variable_scope(self._scope):
             self.weight = tf.placeholder(shape=[input_depth, num_unitwise], dtype=tf.float32)
-            self._b = tf.zeros(shape=[hidden_size], dtype=tf.float32)
+            if use_bias:
+                self._b = tf.zeros(shape=[hidden_size], dtype=tf.float32)
+
+            self.roll = tf.placeholder_with_default(tf.zeros([1], dtype=tf.int32), [1])
+
         self._train = train
 
         self._activation_type = activation_type
@@ -496,6 +502,10 @@ class SparseDummyFullyConnected(object):
 
             random_res = tf.random.normal(random_shape, 0, stddev)
             res = tf.concat([res, random_res], axis=1)
+
+            res = tf.roll(res, self.roll, [-1])
+            if self.use_bias:
+                res += self._b
 
             if self._activation_type is not None:
                 act_func = \
@@ -538,21 +548,26 @@ class SparseFullyConnected(object):
 
     def __init__(self, input_depth, hidden_size, scope,
                  activation_type, normalizer_type, sparse_list,
-                 train=True):
+                 train=True, use_bias=True):
 
         self._scope = scope
         self.input_depth = input_depth
+        self.use_bias = use_bias
         self.hidden_size = hidden_size
 
         with tf.variable_scope(self._scope):
             self.weight, self.var = get_sparse_weight_matrix([input_depth, hidden_size],
                 sparse_list, out_type='sparse', dtype=tf.float32, name='')
-            self._b = tf.Variable(tf.zeros(shape=[hidden_size], dtype=tf.float32))
+            if use_bias:
+                self._b = tf.Variable(tf.zeros(shape=[hidden_size], dtype=tf.float32))
         self._train = train
 
         self._activation_type = activation_type
         self._normalizer_type = normalizer_type
-        self.initialize_op = tf.initialize_variables([self._b, self.var])
+        if use_bias:
+            self.initialize_op = tf.initialize_variables([self._b, self.var])
+        else:
+            self.initialize_op = tf.initialize_variables([self.var])
 
     def __call__(self, input_vec):
         output_shape = tf.shape(input_vec)
@@ -561,7 +576,10 @@ class SparseFullyConnected(object):
         )
 
         with tf.variable_scope(self._scope):
+
             res = sparse_matmul(flat_input, self.weight)
+            if self.use_bias:
+                res += self._b
 
             if self._activation_type is not None:
                 act_func = \
@@ -642,7 +660,8 @@ class DenseFullyConnected(object):
         self._scope = scope
         self.input_depth = input_depth
         self.hidden_size = hidden_size
-        print(weight)
+        print(hidden_size)
+        print(weight.shape)
 
         with tf.variable_scope(self._scope):
             self.weight = tf.Variable(weight, dtype=tf.float32)
@@ -660,7 +679,7 @@ class DenseFullyConnected(object):
         )
 
         with tf.variable_scope(self._scope):
-            res = tf.matmul(flat_input, self.weight)
+            res = tf.matmul(flat_input, self.weight) + self._b
 
             if self._activation_type is not None:
                 act_func = \
