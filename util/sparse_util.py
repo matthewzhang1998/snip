@@ -145,7 +145,7 @@ class SparseDummyLSTMCell(object):
         self._num_unitwise = num_unitwise if num_unitwise is not None else 1
 
         self._dummy_kernel = tf.placeholder(
-            shape=[input_depth + 2*self._num_units, 4 * self._num_unitwise], dtype=tf.float32
+            shape=[input_depth + self._num_units, 4 * self._num_unitwise], dtype=tf.float32
         )
         self._dummy_bias = tf.zeros(
             shape=[4 * self._num_unitwise], dtype=tf.float32
@@ -165,22 +165,22 @@ class SparseDummyLSTMCell(object):
 
         # i = input_gate, j = new_input, f = forget_gate, o = output_gate
         i = tf.matmul(
-            tf.concat([inputs, c_prev, m_prev], 1),
+            tf.concat([inputs, m_prev], 1),
             self._dummy_kernel[:, :self._num_unitwise]) \
             + self._dummy_bias[:self._num_unitwise]
 
         j = tf.matmul(
-            tf.concat([inputs, c_prev, m_prev], 1),
+            tf.concat([inputs, m_prev], 1),
             self._dummy_kernel[:, self._num_unitwise:2 * self._num_unitwise]) \
             + self._dummy_bias[self._num_unitwise:2 * self._num_unitwise]
 
         f = tf.matmul(
-            tf.concat([inputs, c_prev, m_prev], 1),
+            tf.concat([inputs, m_prev], 1),
             self._dummy_kernel[:, 2 * self._num_unitwise:3 * self._num_unitwise]) \
             + self._dummy_bias[2 * self._num_unitwise:3 * self._num_unitwise]
 
         o = tf.matmul(
-            tf.concat([inputs, c_prev, m_prev], 1),
+            tf.concat([inputs, m_prev], 1),
             self._dummy_kernel[:, 3 * self._num_unitwise:]) \
             + self._dummy_bias[3 * self._num_unitwise:]
 
@@ -242,7 +242,7 @@ class SparseLSTMCell(RNNCell):
 
         with tf.variable_scope(self._scope):
             self._sparse_matrix, self._sparse_values = get_sparse_weight_matrix(
-                [input_depth+2*num_units,4*num_units],
+                [input_depth+num_units,4*num_units],
                 sparse_list, name='sparse_linear'
             )
 
@@ -275,7 +275,7 @@ class SparseLSTMCell(RNNCell):
                 c, h = tf.split(state, 2, 1)
             # concat = _linear([inputs, h], 4 * self._num_units, True)
 
-            concat = sparse_matmul([inputs, state], self._sparse_matrix) + self._bias
+            concat = sparse_matmul([inputs, h], self._sparse_matrix) + self._bias
             i, j, f, o = tf.split(concat, 4, 1)
 
             new_c = (c * tf.sigmoid(f + self._forget_bias) + tf.sigmoid(i) *
@@ -660,8 +660,6 @@ class DenseFullyConnected(object):
         self._scope = scope
         self.input_depth = input_depth
         self.hidden_size = hidden_size
-        print(hidden_size)
-        print(weight.shape)
 
         with tf.variable_scope(self._scope):
             self.weight, v = get_mask(weight)
@@ -821,7 +819,7 @@ class DenseLSTMCell(object):
                 c, h = tf.split(state, 2, 1)
             # concat = _linear([inputs, h], 4 * self._num_units, True)
 
-            concat = tf.matmul(tf.concat([inputs, state], axis=1), self.w) + self._bias
+            concat = tf.matmul(tf.concat([inputs, h], axis=1), self.w) + self._bias
             i, j, f, o = tf.split(concat, 4, 1)
 
             new_c = (c * tf.sigmoid(f + self._forget_bias) + tf.sigmoid(i) *

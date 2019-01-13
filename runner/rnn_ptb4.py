@@ -113,7 +113,7 @@ class PTBRunner(BaseRunner):
                 nu = self.params.num_unitwise_rnn
                 nu = nh if nu > nh else nu
 
-                h_ix = int((1-self.params.unit_k)*(ni+2*nh)*4*nh/(nh//nu+1))
+                h_ix = int((1-self.params.unit_k)*(ni+nh)*4*nh/(nh//nu+1))
                 t_ix = h_ix*(nh//nu+1)
                 top_vals = np.zeros((t_ix, 3), dtype=np.float32)
                 rand_vals = np.zeros((t_ix, 3), dtype=np.float32)
@@ -128,7 +128,7 @@ class PTBRunner(BaseRunner):
                     return out
 
                 for j in range(nh//nu+1):
-                    weights = np.zeros((ni+2*nh, 4*nu))
+                    weights = np.zeros((ni+nh, 4*nu))
                     if j != nh//nu:
                         weights[:, :nu] = all_weights[:,j*nu:(j+1)*nu]
                         weights[:, nu:2 * nu] = all_weights[:, j*nu+nh:(j + 1)*nu+nh]
@@ -138,13 +138,13 @@ class PTBRunner(BaseRunner):
                     else:
                         nx = nh - j*nu
                         weights[:, :nx] = all_weights[:, j*nu:nh]
-                        weights[:, nx:nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
+                        weights[:, nx:nu] = normc_initializer((ni+nh,nu-nx), self._npr)
                         weights[:, nu:nu + nx] = all_weights[:, j*nu+nh:2*nh]
-                        weights[:, nu+nx:2*nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
+                        weights[:, nu+nx:2*nu] = normc_initializer((ni+nh,nu-nx), self._npr)
                         weights[:, 2 * nu:2 * nu + nx] = all_weights[:, j*nu+2*nh:3*nh]
-                        weights[:, 2*nu+nx:3*nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
+                        weights[:, 2*nu+nx:3*nu] = normc_initializer((ni+nh,nu-nx), self._npr)
                         weights[:, 3 * nu:3 * nu + nx] = all_weights[:, j*nu+3*nh:]
-                        weights[:, 3*nu+nx:4*nu] = normc_initializer((ni+2*nh,nu-nx), self._npr)
+                        weights[:, 3*nu+nx:4*nu] = normc_initializer((ni+nh,nu-nx), self._npr)
 
                     feed_dict = {
                         self.Placeholder['Unit_Kernel'][i]: weights,
@@ -160,11 +160,11 @@ class PTBRunner(BaseRunner):
                     scipy.misc.imsave(osp.join(self.Dir, 'grad{}.jpg'.format(info['scope'])), grads)
                     top_k = np.unravel_index(
                         np.argpartition(np.abs(grads), -h_ix, axis=None)[-h_ix:],
-                        (ni+2*nh,4*nu)
+                        (ni+nh,4*nu)
                     )
                     random_k = np.unravel_index(self._npr.choice(np.arange(weights.size),
                         size = (h_ix,), replace=False),
-                        (ni+2*nh,4*nu))
+                        (ni+nh,4*nu))
 
                     for k in range(len(top_k[0])):
                         l,m = top_k[0][k], top_k[1][k]
@@ -186,14 +186,14 @@ class PTBRunner(BaseRunner):
 
                         ix += 1
 
-                random_list = np.zeros((ni+2*nh, 4*nh))
+                random_list = np.zeros((ni+nh, 4*nh))
                 random_list[rand_vals[:,1].astype(np.int32),
                     rand_vals[:,2].astype(np.int32)] = rand_vals[:,0]
-                top_list = np.zeros((ni + 2 * nh, 4 * nh))
+                top_list = np.zeros((ni+nh, 4 * nh))
                 top_list[top_vals[:,1].astype(np.int32),
                     top_vals[:,2].astype(np.int32)] = top_vals[:,0]
 
-                im = np.zeros((ni+2*nh, 4*nh))
+                im = np.zeros((ni+nh, 4*nh))
                 im[top_vals[:,1].astype(np.int32), top_vals[:,2].astype(np.int32)] = 1
                 scipy.misc.imsave(osp.join(self.Dir, '{}.jpg'.format(info['scope'])), im)
 
