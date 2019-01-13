@@ -100,11 +100,10 @@ class PTBRunner(BaseRunner):
 
         grads = self.Sess.run(self.Tensor['Snip_Grad'], feed_dict)
         k = len(self.params.rnn_r_hidden_seq)
-        dense = [False for _ in range(k)]
+        dense = [True for _ in range(k)]
         snip_weights = self.prune_together(weights[1:k+1], grads[1:k+1], self.params.snip_k, dense)
         snip_weights = [weights[0]] + snip_weights + weights[k+1:]
         use_dense = [True for _ in grads]
-        use_dense[1:k+1] = [False]*k
 
         l2_weights = self.prune_together(weights[1:k+1], weights[1:k+1], self.params.l2_k, dense)
         l2_weights = [weights[0]] + l2_weights + weights[k+1:]
