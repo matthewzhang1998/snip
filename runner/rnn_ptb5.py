@@ -336,5 +336,4 @@ class PTBRunner(BaseRunner):
                 return_arr.append(np.reshape(mask, shape)*weights[ix])
 
             start = end
-
         return return_arr

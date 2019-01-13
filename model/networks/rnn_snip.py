@@ -119,7 +119,7 @@ class RNNModel(BaseModel):
             else:
                 if self.Network['Type'][ix] == 'rnn':
                     self.Network['Dummy'][ix] = DenseRecurrentNetwork(
-                        **self.Network['Params'][ix], weight=sparse_var
+                        **self.Network['Params'][ix], weight=sparse_var[ix]
                     )
 
                 elif self.Network['Type'][ix] == 'mlp':
