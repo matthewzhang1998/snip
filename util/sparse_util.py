@@ -664,13 +664,13 @@ class DenseFullyConnected(object):
         print(weight.shape)
 
         with tf.variable_scope(self._scope):
-            self.weight = tf.Variable(weight, dtype=tf.float32)
+            self.weight, v = get_mask(weight)
             self._b = tf.Variable(tf.zeros(shape=[hidden_size], dtype=tf.float32))
         self._train = train
 
         self._activation_type = activation_type
         self._normalizer_type = normalizer_type
-        self.initialize_op = tf.initialize_variables([self._b, self.weight])
+        self.initialize_op = tf.initialize_variables([self._b, v])
 
     def __call__(self, input_vec):
         output_shape = tf.shape(input_vec)
@@ -707,9 +707,9 @@ class DenseEmbedding(object):
         self.seed = seed
 
         with tf.variable_scope(self._scope):
-            self.weight = tf.Variable(weight, dtype=tf.float32)
+            self.weight, v = get_mask(weight)
 
-        self.initialize_op = tf.initialize_variables([self.weight])
+        self.initialize_op = tf.initialize_variables([v])
 
     def __call__(self, input_vec):
         output_shape = tf.shape(input_vec)
@@ -738,6 +738,8 @@ class DenseRecurrentNetwork(object):
         with tf.variable_scope(scope):
             self._cell = _cell_proto(hidden_size, **_cell_kwargs,
                 input_depth=input_depth, init_matrix=weight, seed=seed)
+
+        self.initialize_op = self._cell.initialize_op
 
     def __call__(self, input_tensor, hidden_states=None):
         with tf.variable_scope(self._scope, reuse=self._reuse):
@@ -793,11 +795,13 @@ class DenseLSTMCell(object):
         self._activation = get_activation_func(activation)
 
         with tf.variable_scope(self._scope):
-            self.w = tf.Variable(init_matrix, dtype=tf.float32)
+            self.w, v = get_mask(init_matrix)
 
             self._bias = tf.get_variable(
                 name='bias', shape=[4 * self._num_units], initializer=tf.zeros_initializer
             )
+
+        self.initialize_op = tf.initialize_variables([self._bias, v])
 
     @property
     def state_size(self):
@@ -829,3 +833,13 @@ class DenseLSTMCell(object):
             else:
                 new_state = tf.concat([new_c, new_h], 1)
             return new_h, new_state
+
+def get_mask(weight):
+    mask = np.zeros_like(weight)
+    mask_inds = np.nonzero(weight)
+    mask[mask_inds] = 1
+
+    mask = tf.constant(mask, dtype=tf.float32)
+    weight = tf.Variable(weight, dtype=tf.float32)
+
+    return mask * weight, weight

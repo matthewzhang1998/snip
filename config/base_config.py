@@ -21,10 +21,10 @@ def get_base_parser():
     parser.add_argument('--weight_decay', type=float, default=0.0005)
 
     parser.add_argument('--noise_delta', type=float, default=0.1)
-    parser.add_argument('--snip_k', type=float, default=0.95)
+    parser.add_argument('--snip_k', type=float, default=0.99)
     parser.add_argument('--l2_k', type=float, default=0.99)
-    parser.add_argument('--random_k', type=float, default=0.95)
-    parser.add_argument('--unit_k', type=float, default=0.95)
+    parser.add_argument('--random_k', type=float, default=0.99)
+    parser.add_argument('--unit_k', type=float, default=0.99)
 
     parser.add_argument('--log_dir', type=str, default='../log/log')
     parser.add_argument('--model_type', type=str, default='rnn')
@@ -55,10 +55,10 @@ def get_base_parser():
     parser.add_argument('--l1_mask_penalty', type=float, default=0.00)
     parser.add_argument('--val_size', type=int, default=20)
 
-    parser.add_argument('--drw_k', type=int, default=0.95)
+    parser.add_argument('--drw_k', type=int, default=0.99)
     parser.add_argument('--drw_temperature', type=int, default=0.00)
 
-    parser.add_argument('--weight_dir', type=str, default="../weights/rnn")
+    parser.add_argument('--weight_dir', type=str, default=None)
 
 
     return parser

@@ -105,7 +105,7 @@ class PTBRunner(BaseRunner):
 
         features, labels = self._get_batch()
         if type == 'rnn':
-            use_dense = False
+            use_dense = True
 
             if 'lstm' in info['recurrent_cell_type']:
                 nh = info['hidden_size']
@@ -186,8 +186,12 @@ class PTBRunner(BaseRunner):
 
                         ix += 1
 
-                random_list = [rand_vals[:,0], rand_vals[:,1:]]
-                top_list = [top_vals[:,0], top_vals[:,1:]]
+                random_list = np.zeros((ni+2*nh, 4*nh))
+                random_list[rand_vals[:,1].astype(np.int32),
+                    rand_vals[:,2].astype(np.int32)] = rand_vals[:,0]
+                top_list = np.zeros((ni + 2 * nh, 4 * nh))
+                top_list[top_vals[:,1].astype(np.int32),
+                    top_vals[:,2].astype(np.int32)] = top_vals[:,0]
 
                 im = np.zeros((ni+2*nh, 4*nh))
                 im[top_vals[:,1].astype(np.int32), top_vals[:,2].astype(np.int32)] = 1
@@ -340,11 +344,11 @@ class PTBRunner(BaseRunner):
 
         self.train_summary = {
             'Train_Error': self.Output['Error'],
-            'Train_Loss': tf.log(self.Output['Loss'])
+            'Train_Loss': self.Output['Loss']
         }
         self.val_summary = {
             'Val_Error': self.Placeholder['Val_Error'],
-            'Val_Loss': tf.log(self.Placeholder['Val_Loss'])
+            'Val_Loss': self.Placeholder['Val_Loss']
         }
         self.train_op = [
             self.Output['Random_Train'],

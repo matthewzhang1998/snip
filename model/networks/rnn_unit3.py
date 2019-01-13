@@ -119,10 +119,9 @@ class RNNModel(BaseModel):
                 )
         else:
             if self.Network['Type'][ii] == 'rnn':
-                raise NotImplementedError
-                #self.Network['Dummy'][ii] = DenseRecurrentNetwork(
-                #    **self.Network['Params'][ii], sparse_list=sparse_var
-                #)
+                self.Network['Dummy'][ii] = DenseRecurrentNetwork(
+                    **self.Network['Params'][ii], weight=sparse_var
+                )
 
             elif self.Network['Type'][ii] == 'mlp':
                 self.Network['Dummy'][ii] = DenseFullyConnected(

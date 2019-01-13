@@ -151,11 +151,11 @@ class PTBRunner(BaseRunner):
 
         self.train_summary = {
             'Train_Error': self.Output['Error'],
-            'Train_Loss': tf.log(self.Output['Loss'])
+            'Train_Loss': self.Output['Loss']
         }
         self.val_summary = {
             'Val_Error': self.Placeholder['Val_Error'],
-            'Val_Loss': tf.log(self.Placeholder['Val_Loss'])
+            'Val_Loss': self.Placeholder['Val_Loss']
         }
         self.train_op = [
             self.Output['DRW_Train']
