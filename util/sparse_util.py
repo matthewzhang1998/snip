@@ -289,7 +289,7 @@ class SparseLSTMCell(RNNCell):
             return new_h, new_state
 
 def dummy_step(cell, _input, _state, _output_tensor, _i):
-    _output, _next_state = cell(_input[:, _i], _state[:, _i])
+    _output, _next_state = cell.call(_input[:, _i], _state[:, _i])
 
     _state = tf.concat(
         [_state, tf.expand_dims(_next_state, 1)], axis=1

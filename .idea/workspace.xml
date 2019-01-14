@@ -15,8 +15,6 @@
       <change afterPath="$PROJECT_DIR$/main/tmp/data/t10k-labels-idx1-ubyte.gz" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/tmp/data/train-images-idx3-ubyte.gz" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/main/tmp/data/train-labels-idx1-ubyte.gz" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/rnn_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/rnn_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/load_pen.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/load_pen.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/mnist_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/mnist_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/ptb_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/ptb_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/util/sparse_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/sparse_util.py" afterDir="false" />
@@ -72,13 +70,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="67" />
-          <entry key="py" value="92565" />
+          <entry key="py" value="92570" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="67" />
-          <entry key="Python" value="92565" />
+          <entry key="Python" value="92570" />
         </counts>
       </usages-collector>
     </session>
@@ -94,11 +92,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
-              <caret line="6" column="71" selection-start-line="6" selection-start-column="71" selection-end-line="6" selection-end-column="71" />
+            <state relative-caret-position="105">
+              <caret line="7" column="73" selection-start-line="7" selection-start-column="73" selection-end-line="7" selection-end-column="73" />
             </state>
           </provider>
         </entry>
@@ -172,14 +170,14 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="96">
-              <caret line="534" column="35" selection-start-line="534" selection-start-column="16" selection-end-line="534" selection-end-column="35" />
+            <state relative-caret-position="201">
+              <caret line="291" column="36" selection-start-line="291" selection-start-column="36" selection-end-line="291" selection-end-column="36" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
-                <marker date="1547432371821" expanded="true" signature="30776:30781" ph="..." />
+                <marker date="1547433324884" expanded="true" signature="30781:30786" ph="..." />
               </folding>
             </state>
           </provider>
@@ -209,7 +207,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>osp.join</find>
       <find>seed</find>
       <find>rmd</find>
       <find>num_uni</find>
@@ -239,6 +236,7 @@
       <find>2*self._hidden_size</find>
       <find>get_activation_func</find>
       <find>2*nh</find>
+      <find>__call__</find>
     </findStrings>
     <replaceStrings>
       <replace>num_layer</replace>
@@ -299,8 +297,8 @@
         <option value="$PROJECT_DIR$/runner/rnn_ptb4.py" />
         <option value="$PROJECT_DIR$/main/generate_weights.py" />
         <option value="$PROJECT_DIR$/data/load_pen.py" />
-        <option value="$PROJECT_DIR$/util/sparse_util.py" />
         <option value="$PROJECT_DIR$/config/rnn_config.py" />
+        <option value="$PROJECT_DIR$/util/sparse_util.py" />
       </list>
     </option>
   </component>
@@ -1018,17 +1016,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="96">
-          <caret line="534" column="35" selection-start-line="534" selection-start-column="16" selection-end-line="534" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1547432371821" expanded="true" signature="30776:30781" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/model/networks/rnn_unit3.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1470">
@@ -1039,6 +1026,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="73" selection-start-line="7" selection-start-column="73" selection-end-line="7" selection-end-column="73" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/config/base_config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
@@ -1046,10 +1040,14 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
+    <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" column="71" selection-start-line="6" selection-start-column="71" selection-end-line="6" selection-end-column="71" />
+        <state relative-caret-position="201">
+          <caret line="291" column="36" selection-start-line="291" selection-start-column="36" selection-end-line="291" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1547433324884" expanded="true" signature="30781:30786" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
