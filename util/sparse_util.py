@@ -151,9 +151,15 @@ class SparseDummyLSTMCell(object):
             shape=[4 * self._num_unitwise], dtype=tf.float32
         )
 
-        self._output_size = num_units
+        self.output_size = num_units
+        self.state_size = 2*num_units
 
-    def call(self, inputs, state):
+    def zero_state(self, batch_size, dtype):
+        return tf.zeros(
+            tf.stack([batch_size, tf.constant(self.state_size)]),
+            dtype=dtype)
+
+    def __call__(self, inputs, state):
         num_proj = self._num_units
 
         c_prev = tf.slice(state, [0, 0], [-1, self._num_units])
@@ -253,19 +259,19 @@ class SparseLSTMCell(RNNCell):
 
         self.initialize_op = tf.initialize_variables([self._bias, self._sparse_values])
 
-    @property
-    def state_size(self):
-        raise NotImplementedError
+        self.output_size = num_units
+        self.state_size = 2 * num_units
 
-    @property
-    def output_size(self):
-        return self._num_units
+    def zero_state(self, batch_size, dtype):
+        return tf.zeros(
+            tf.stack([batch_size, tf.constant(self.state_size)]),
+            dtype=dtype)
 
     @property
     def sparsity(self):
         return self._sparsity
 
-    def call(self, inputs, state, scope=None):
+    def __call__(self, inputs, state, scope=None):
         """Long short-term memory cell (LSTM)."""
         with tf.variable_scope(scope or type(self).__name__):  # "BasicLSTMCell"
             # Parameters of gates are concatenated into one multiply for efficiency.
@@ -372,6 +378,7 @@ class SparseDummyRecurrentNetwork(object):
             _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
+                dtype=tf.float32
             )
 
             if self._activation_type is not None:
@@ -444,6 +451,7 @@ class SparseRecurrentNetwork(object):
             _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
+                dtype=tf.float32
             )
 
             if self._activation_type is not None:
@@ -742,6 +750,7 @@ class DenseRecurrentNetwork(object):
             _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
+                dtype=tf.float32
             )
 
             if self._activation_type is not None:
@@ -797,16 +806,15 @@ class DenseLSTMCell(object):
             )
 
         self.initialize_op = tf.initialize_variables([self._bias, v])
+        self.output_size = num_units
+        self.state_size = 2*num_units
 
-    @property
-    def state_size(self):
-        raise NotImplementedError
+    def zero_state(self, batch_size, dtype):
+        return tf.zeros(
+            tf.stack([batch_size, tf.constant(self.state_size)]),
+            dtype=dtype)
 
-    @property
-    def output_size(self):
-        return self._num_units
-
-    def call(self, inputs, state, scope=None):
+    def __call__(self, inputs, state, scope=None):
         """Long short-term memory cell (LSTM)."""
         with tf.variable_scope(scope or type(self).__name__):  # "BasicLSTMCell"
             # Parameters of gates are concatenated into one multiply for efficiency.
