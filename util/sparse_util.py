@@ -369,10 +369,9 @@ class SparseDummyRecurrentNetwork(object):
     def __call__(self, input_tensor, hidden_states=None):
         print(input_tensor, hidden_states)
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            _rnn_outputs, _rnn_states = _dynamic_rnn(
+            _rnn_outputs, _rnn_states = tf.contrib.rnn.dynamic_rnn(
                 self._cell, input_tensor,
-                hidden_size=self._hidden_size, initial_state=hidden_states,
-                use_lstm=self._use_lstm
+                initial_state=hidden_states,
             )
 
             if self._activation_type is not None:
@@ -442,10 +441,9 @@ class SparseRecurrentNetwork(object):
 
     def __call__(self, input_tensor, hidden_states=None):
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            _rnn_outputs, _rnn_states = _dynamic_rnn(
+            _rnn_outputs, _rnn_states = tf.contrib.rnn.dynamic_rnn(
                 self._cell, input_tensor,
-                hidden_size=self._hidden_size, initial_state=hidden_states,
-                use_lstm=self._use_lstm
+                initial_state=hidden_states,
             )
 
             if self._activation_type is not None:
@@ -741,10 +739,9 @@ class DenseRecurrentNetwork(object):
 
     def __call__(self, input_tensor, hidden_states=None):
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            _rnn_outputs, _rnn_states = _dynamic_rnn(
+            _rnn_outputs, _rnn_states = tf.contrib.rnn.dynamic_rnn(
                 self._cell, input_tensor,
-                hidden_size=self._hidden_size, initial_state=hidden_states,
-                use_lstm=self._use_lstm
+                initial_state=hidden_states,
             )
 
             if self._activation_type is not None:

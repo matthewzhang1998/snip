@@ -179,7 +179,7 @@ class DRWLSTMCell(object):
                 c, h = tf.split(state, 2, 1)
             # concat = _linear([inputs, h], 4 * self._num_units, True)
 
-            concat = tf.matmul(tf.concat([inputs, state], axis=1), self.w) + self._bias
+            concat = tf.matmul(tf.concat([inputs, h], axis=1), self.w) + self._bias
             i, j, f, o = tf.split(concat, 4, 1)
 
             new_c = (c * tf.sigmoid(f + self._forget_bias) + tf.sigmoid(i) *
