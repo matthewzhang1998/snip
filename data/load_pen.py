@@ -116,8 +116,8 @@ def ptb_producer(raw_data, batch_size, num_steps, i, name=None):
 
     epoch_size = (batch_len - 1) // num_steps
     i = i % epoch_size
-    x = data[0:batch_size, i * num_steps:(i+1)*num_steps]
-    y = data[0:batch_size, i * num_steps+1:(i+1)*num_steps+1]
+    x = data[:, i * num_steps:(i+1)*num_steps]
+    y = data[:, i * num_steps+1:(i+1)*num_steps+1]
     return x, y
 
 class Dataset(object):

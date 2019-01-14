@@ -153,7 +153,7 @@ class SparseDummyLSTMCell(object):
 
         self._output_size = num_units
 
-    def __call__(self, inputs, state):
+    def call(self, inputs, state):
         num_proj = self._num_units
 
         c_prev = tf.slice(state, [0, 0], [-1, self._num_units])
@@ -265,7 +265,7 @@ class SparseLSTMCell(RNNCell):
     def sparsity(self):
         return self._sparsity
 
-    def __call__(self, inputs, state, scope=None):
+    def call(self, inputs, state, scope=None):
         """Long short-term memory cell (LSTM)."""
         with tf.variable_scope(scope or type(self).__name__):  # "BasicLSTMCell"
             # Parameters of gates are concatenated into one multiply for efficiency.
@@ -809,7 +809,7 @@ class DenseLSTMCell(object):
     def output_size(self):
         return self._num_units
 
-    def __call__(self, inputs, state, scope=None):
+    def call(self, inputs, state, scope=None):
         """Long short-term memory cell (LSTM)."""
         with tf.variable_scope(scope or type(self).__name__):  # "BasicLSTMCell"
             # Parameters of gates are concatenated into one multiply for efficiency.
@@ -822,7 +822,7 @@ class DenseLSTMCell(object):
             concat = tf.matmul(tf.concat([inputs, h], axis=1), self.w) + self._bias
             i, j, f, o = tf.split(concat, 4, 1)
 
-            new_c = (c * tf.sigmoid(f + self._forget_bias) + tf.sigmoid(i) *
+            new_c = (c * tf.sigmoid(f + self._forget_bias)) + (tf.sigmoid(i) *
                      self._activation(j))
             new_h = self._activation(new_c) * tf.sigmoid(o)
 
