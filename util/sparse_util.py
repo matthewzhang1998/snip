@@ -369,7 +369,7 @@ class SparseDummyRecurrentNetwork(object):
     def __call__(self, input_tensor, hidden_states=None):
         print(input_tensor, hidden_states)
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            _rnn_outputs, _rnn_states = tf.contrib.rnn.dynamic_rnn(
+            _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
             )
@@ -441,7 +441,7 @@ class SparseRecurrentNetwork(object):
 
     def __call__(self, input_tensor, hidden_states=None):
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            _rnn_outputs, _rnn_states = tf.contrib.rnn.dynamic_rnn(
+            _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
             )
@@ -739,7 +739,7 @@ class DenseRecurrentNetwork(object):
 
     def __call__(self, input_tensor, hidden_states=None):
         with tf.variable_scope(self._scope, reuse=self._reuse):
-            _rnn_outputs, _rnn_states = tf.contrib.rnn.dynamic_rnn(
+            _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
             )
