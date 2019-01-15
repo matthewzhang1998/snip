@@ -35,8 +35,6 @@ class PTBRunner(BaseRunner):
         self.learning_rate = params.learning_rate
         self.pretrain_learning_rate = params.pretrain_learning_rate
 
-        self.Writer['Random'] = \
-            FileWriter(self.Dir+'/random', self.Sess.graph)
         self.Writer['Unit'] = \
             FileWriter(self.Dir+'/unit', self.Sess.graph)
 
@@ -99,7 +97,6 @@ class PTBRunner(BaseRunner):
         type = self.Model['Unit'].Info['Type'][i]
 
         final_list = []
-        random_list = []
 
         features, labels = self._get_batch()
         if type == 'rnn':
@@ -214,7 +211,6 @@ class PTBRunner(BaseRunner):
         self.Sess.run(self.Tensor['Variable_Initializer'])
 
     def _build_networks(self, unit_list, random_list, i, use_dense=False):
-        self.Model['Random'].build_sparse(random_list, i, use_dense=use_dense)
         self.Model['Unit'].build_sparse(unit_list, i, use_dense=use_dense)
 
         if i != 0:
@@ -235,18 +231,8 @@ class PTBRunner(BaseRunner):
             for key in self.Model:
                 self.Tensor['Variable_Initializer'][key] = self.Model[key].initialize_op
 
-            self.Output['Random_Pred'] = self.Model['Random'].run(
-                self.Placeholder['Input_Feature']
-            )
-
             self.Output['Unit_Pred'] = self.Model['Unit'].run(
                 self.Placeholder['Input_Feature']
-            )
-
-            self.Output['Random_Loss'] = tf.reduce_mean(
-               self.Tensor['Loss_Function'](
-                   self.Output['Random_Pred'], self.Placeholder['Input_Label']
-               )
             )
 
             self.Output['Unit_Loss'] = tf.reduce_mean(
@@ -254,8 +240,6 @@ class PTBRunner(BaseRunner):
                     self.Output['Unit_Pred'], self.Placeholder['Input_Label']
                 )
             )
-            self.Output['Random_Train'] = \
-               self.Output['Optimizer'].minimize(self.Output['Random_Loss'])
             self.Output['Unit_Train'] = \
                 self.Output['Optimizer'].minimize(self.Output['Unit_Loss'])
 
@@ -309,7 +293,6 @@ class PTBRunner(BaseRunner):
         #    ]
 
         self.Output['Pred'] = {
-            'Random': self.Output['Random_Pred'],
             'Unit': self.Output['Unit_Pred']
         }
 
@@ -322,7 +305,6 @@ class PTBRunner(BaseRunner):
             'Val_Loss': self.Placeholder['Val_Loss']
         }
         self.train_op = [
-            self.Output['Random_Train'],
             self.Output['Unit_Train']
         ]
 
@@ -355,7 +337,7 @@ class PTBRunner(BaseRunner):
 
     def val(self, i):
         start = 0
-        summary = {'Unit': defaultdict(list),'Random': defaultdict(list)}
+        summary = {'Unit': defaultdict(list)}
 
         for k in range(self.params.val_size):
             end = start + self.params.batch_size
