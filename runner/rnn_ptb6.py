@@ -116,7 +116,7 @@ class PTBRunner(BaseRunner):
                 ix = 0
 
                 def he_initializer(shape, npr, stddev=1.0):
-                    out = npr.normal(loc=0, scale=shape[0], size=shape).astype(np.float32)
+                    out = npr.normal(loc=0, scale=np.sqrt(2/shape[0]), size=shape).astype(np.float32)
                     return out
 
                 for j in range(nh//nu+1):
