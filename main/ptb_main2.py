@@ -1,8 +1,8 @@
 import init_path
 from config.base_config import *
 from config.rnn_config import *
-import runner.rnn_ptb4.PTBRunner
-import runner.rnn_ptb6.PTBRunner
+import runner.rnn_ptb4
+import runner.rnn_ptb6
 
 def main():
     import logging
