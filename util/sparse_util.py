@@ -224,7 +224,7 @@ class SparseDummyGRUCell(object):
     def __call__(self, input):
         pass
 
-class SparseLSTMCell(RNNCell):
+class SparseLSTMCell(object):
 
     def __init__(self, num_units, sparse_list, forget_bias=1.0,
                  input_depth=None, state_is_tuple=False, activation='tanh',
