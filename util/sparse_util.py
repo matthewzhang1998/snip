@@ -358,7 +358,7 @@ class SparseDummyRecurrentNetwork(object):
     def __init__(self, scope, activation_type,
                  normalizer_type, recurrent_cell_type,
                  train, hidden_size, input_depth, reuse=True,
-                 num_unitwise=None, seed=12345):
+                 num_unitwise=None, swap_memory=True, seed=12345):
         self._scope = scope
         self._use_lstm = True if 'lstm' in recurrent_cell_type else False
         _cell_proto, _cell_kwargs = get_dummy_rnn_cell(recurrent_cell_type)
@@ -367,6 +367,7 @@ class SparseDummyRecurrentNetwork(object):
         self._train = train
         self._reuse = reuse
         self._hidden_size = hidden_size
+        self.swap_memory = swap_memory
 
         with tf.variable_scope(scope):
             self._cell = _cell_proto(hidden_size, **_cell_kwargs, input_depth=input_depth,
@@ -378,7 +379,8 @@ class SparseDummyRecurrentNetwork(object):
             _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
-                dtype=tf.float32
+                dtype=tf.float32,
+                swap_memory=self.swap_memory
             )
 
             if self._activation_type is not None:
@@ -430,7 +432,7 @@ class SparseRecurrentNetwork(object):
     def __init__(self, scope, activation_type,
                  normalizer_type, recurrent_cell_type, sparse_list,
                  train, hidden_size, input_depth, seed=12345,
-                 dtype=tf.float32, reuse=None):
+                 dtype=tf.float32, swap_memory=True, reuse=None):
         self._scope = scope
         self._use_lstm = True if 'lstm' in recurrent_cell_type else False
         _cell_proto, _cell_kwargs = get_sparse_rnn_cell(recurrent_cell_type)
@@ -445,13 +447,15 @@ class SparseRecurrentNetwork(object):
                 input_depth=input_depth, sparse_list=sparse_list, seed=seed)
 
         self.initialize_op = self._cell.initialize_op
+        self.swap_memory = swap_memory
 
     def __call__(self, input_tensor, hidden_states=None):
         with tf.variable_scope(self._scope, reuse=self._reuse):
             _rnn_outputs, _rnn_states = tf.nn.dynamic_rnn(
                 self._cell, input_tensor,
                 initial_state=hidden_states,
-                dtype=tf.float32
+                dtype=tf.float32,
+                swap_memory=self.swap_memory
             )
 
             if self._activation_type is not None:

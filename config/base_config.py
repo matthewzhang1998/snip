@@ -59,6 +59,7 @@ def get_base_parser():
     parser.add_argument('--drw_temperature', type=int, default=0.00)
 
     parser.add_argument('--weight_dir', type=str, default=None)
+    parser.add_argument('--exp', type=str, default='ptb4')
 
 
     return parser

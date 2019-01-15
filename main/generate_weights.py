@@ -22,8 +22,9 @@ def weights():
     ni = params.embed_size
     for ix in range(len(params.rnn_r_hidden_seq)):
         nh = params.rnn_r_hidden_seq[ix]
-        w = npr.normal(0, np.sqrt(2/ni), [ni+nh, 4*nh])
-        np.save(osp.join(dir, '{}.npy'.format(ix+1)), w)
+        if nh < 2000:
+            w = npr.normal(0, np.sqrt(2/ni), [ni+nh, 4*nh])
+            np.save(osp.join(dir, '{}.npy'.format(ix+1)), w)
         ni = nh
 
     nl = 1+len(params.rnn_r_hidden_seq)

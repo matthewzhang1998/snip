@@ -1,17 +1,20 @@
 import init_path
 from config.base_config import *
 from config.rnn_config import *
-from runner.rnn_ptb4 import *
+import runner.rnn_ptb4.PTBRunner
+import runner.rnn_ptb6.PTBRunner
 
 def main():
     import logging
     import tensorflow
 
-    tf.logging.set_verbosity(tf.logging.INFO)
     parser = get_base_parser()
     parser = rnn_parser(parser)
     params = make_parser(parser)
-    Runner = PTBRunner('mnist', params)
+    if params.exp == 'ptb4':
+        Runner = runner.rnn_ptb4.PTBRunner('mnist', params)
+    elif params.exp == 'ptb6':
+        Runner = runner.rnn_ptb6.PTBRunner('mnist', params)
     Runner.run()
 
 if __name__ == '__main__':
