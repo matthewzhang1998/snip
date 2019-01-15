@@ -120,7 +120,7 @@ class PTBRunner(BaseRunner):
                     return out
 
                 for j in range(nh//nu+1):
-                    weights = he_initializer((ni+nu,2*nu), self._npr)
+                    weights = he_initializer((ni+nh,4*nu), self._npr)
 
                     feed_dict = {
                         self.Placeholder['Unit_Kernel'][i]: weights,
