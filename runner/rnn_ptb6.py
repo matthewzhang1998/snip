@@ -206,8 +206,6 @@ class PTBRunner(BaseRunner):
             scipy.misc.imsave(osp.join(self.Dir, '{}.jpg'.format(info['scope'])), weights)
 
         self._build_networks(top_list, random_list, i, use_dense=use_dense)
-
-        np.save(osp.join(self.Dir, '{}'.format(i)), all_weights)
         self.Sess.run(self.Tensor['Variable_Initializer'])
 
     def _build_networks(self, unit_list, random_list, i, use_dense=False):
