@@ -2,7 +2,7 @@ import numpy as np
 import os.path as osp
 
 from model.networks.base_network import *
-from util.sparse_util import *
+from util.vanilla_util import *
 
 class RNNModel(BaseModel):
     def __init__(self, params, input_size, output_size, seed, init_path,

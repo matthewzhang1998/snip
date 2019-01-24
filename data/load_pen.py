@@ -134,4 +134,5 @@ class Dataset(object):
         return ptb_producer(self.data[scope], self.batch_size, self.num_steps, self.i[scope])
 
 if __name__ == '__main__':
-    print(ptb_raw_data("simple-examples/data"))
+    data = ptb_raw_data("simple-examples/data")
+    print(data['val'].size/20/40)

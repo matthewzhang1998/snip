@@ -45,7 +45,7 @@ def get_base_parser():
     parser.add_argument('--pretrain_kl_beta', type=float, default=0.0)
 
     parser.add_argument('--min_length', type=int, default=50)
-    parser.add_argument('--max_length', type=int, default=35)
+    parser.add_argument('--max_length', type=int, default=20)
 
     parser.add_argument('--embed_size', type=int, default=600)
 
