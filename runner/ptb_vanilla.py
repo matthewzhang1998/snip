@@ -94,6 +94,14 @@ class PTBRunner(BaseRunner):
             dtype=tf.float32, shape=[]
         )
 
+
+        self.Placeholder['Train_Error'] = tf.placeholder(
+            dtype=tf.float32, shape=[]
+        )
+        self.Placeholder['Train_Loss'] = tf.placeholder(
+            dtype=tf.float32, shape=[]
+        )
+
         self.Output['Error'] = tf.exp(self.Output['Loss'])
 
         self.train_res = {
@@ -104,6 +112,11 @@ class PTBRunner(BaseRunner):
         self.val_res = {
             'Val_Error': self.Output['Error'],
             'Val_Loss': self.Output['Loss']
+        }
+
+        self.train_placeholder = {
+            'Train_Error': self.Placeholder['Train_Error'],
+            'Train_Loss': self.Placeholder['Train_Loss']
         }
 
         self.val_placeholder = {
@@ -130,8 +143,8 @@ class PTBRunner(BaseRunner):
         }
 
         self.train_summary = {
-            'Train_Error': self.Output['Error'],
-            'Train_Loss': self.Output['Loss']
+            'Train_Error': self.Placeholder['Train_Error'],
+            'Train_Loss': self.Placeholder['Train_Loss']
         }
         self.val_summary = {
             'Val_Error': self.Placeholder['Val_Error'],
@@ -169,8 +182,8 @@ class PTBRunner(BaseRunner):
                 print(i, key, summary[key][summ])
 
             write_summary = self.Sess.run(
-                self.val_summary,
-                {self.val_placeholder[summ]: summary[key][summ]
+                self.train_summary,
+                {self.train_placeholder[summ]: summary[key][summ]
                  for summ in summary[key]}
             )
             self.Writer[key].add_summary(write_summary, i)
