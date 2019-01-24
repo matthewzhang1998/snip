@@ -162,6 +162,7 @@ class PTBRunner(BaseRunner):
             feed_dict = {
                 self.Placeholder['Input_Feature']: b_feat,
                 self.Placeholder['Input_Label']: b_lab,
+                self.Placeholder['Learning_Rate']: self.learning_rate
             }
             pred = self.Sess.run(
                 [self.Output['Pred']], feed_dict)
@@ -189,6 +190,8 @@ class PTBRunner(BaseRunner):
                  for summ in summary[key]}
             )
             self.Writer[key].add_summary(write_summary, i)
+
+        self.learning_rate = self.decay_lr(i, self.learning_rate)
 
     def val(self, i):
         start = 0
