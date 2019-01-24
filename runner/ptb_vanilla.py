@@ -168,8 +168,8 @@ class PTBRunner(BaseRunner):
 
             pred = pred[0]
             for key in pred:
-                b_summary = self.Sess.run(
-                    self.train_res,
+                b_summary, _ = self.Sess.run(
+                    [self.train_res]+self.train_op,
                     {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
                 )
 
