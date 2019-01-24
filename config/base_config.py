@@ -11,7 +11,7 @@ def get_base_parser():
 
     parser.add_argument('--batch_size', type=int, default=40)
     parser.add_argument('--num_steps', type=int, default=25000)
-    parser.add_argument('--val_steps', type=int, default=50)
+    parser.add_argument('--val_steps', type=int, default=1)
 
     parser.add_argument('--seed', type=int, default=12)
 

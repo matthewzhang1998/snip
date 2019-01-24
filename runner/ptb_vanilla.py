@@ -176,10 +176,12 @@ class PTBRunner(BaseRunner):
                 for summ in b_summary:
                     summary[key][summ].append(b_summary[summ])
 
+        print(summary)
+
         for key in summary:
             for summ in summary[key]:
                 summary[key][summ] = np.mean(summary[key][summ])
-                print(i, key, summary[key][summ])
+                print(i, summ, summary[key][summ])
 
             write_summary = self.Sess.run(
                 self.train_summary,
@@ -213,7 +215,7 @@ class PTBRunner(BaseRunner):
         for key in summary:
             for summ in summary[key]:
                 summary[key][summ] = np.mean(summary[key][summ])
-                print(i, key, summary[key][summ])
+                print(i, summ, summary[key][summ])
 
             write_summary = self.Sess.run(
                 self.val_summary,
