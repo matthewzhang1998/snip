@@ -177,8 +177,6 @@ class PTBRunner(BaseRunner):
                 for summ in b_summary:
                     summary[key][summ].append(b_summary[summ])
 
-        print(summary)
-
         for key in summary:
             for summ in summary[key]:
                 summary[key][summ] = np.mean(summary[key][summ])
