@@ -21,7 +21,7 @@ class RNNModel(BaseModel):
         if init_path is not None:
             load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
         else:
-            load_mat = self._npr.uniform(-.1,.1, (input_size, self.params.embed_size))
+            load_mat = None
         self.Network['Dummy'].append(DenseEmbedding(
             **params, weight=load_mat))
         self.Network['Type'].append('embedding')
@@ -83,34 +83,34 @@ class RNNModel(BaseModel):
 
             input_size = self.params.rnn_l_hidden_seq[ii]
 
-        final_mlp_size = self.params.embed_size
-        params = {'input_depth': input_size,
-              'hidden_size': final_mlp_size,
-              'activation_type': None, 'normalizer_type': None,
-              'train': True, 'scope': 'mlp' + str(ii),
-        }
-
-        if init_path is not None:
-            load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
-        else:
-            load_mat = self._npr.uniform(-.1, .1, (input_size, final_mlp_size))
-        self.Network['Dummy'].append(DenseFullyConnected(
-            **params, weight=load_mat
-        ))
-        self.Network['Type'].append('mlp')
-        ix += 1
+        # final_mlp_size = self.params.embed_size
+        # params = {'input_depth': input_size,
+        #       'hidden_size': final_mlp_size,
+        #       'activation_type': None, 'normalizer_type': None,
+        #       'train': True, 'scope': 'mlp' + str(ii),
+        # }
+        #
+        # if init_path is not None:
+        #     load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
+        # else:
+        #     load_mat = self._npr.uniform(-.1, .1, (input_size, final_mlp_size))
+        # self.Network['Dummy'].append(DenseFullyConnected(
+        #     **params, weight=load_mat
+        # ))
+        # self.Network['Type'].append('mlp')
+        # ix += 1
 
         params = {'hidden_size': output_size,
-                  'input_depth': self.params.embed_size,
+                  'input_depth': input_size,
                   'activation_type': None, 'normalizer_type': None,
                   'train': True, 'scope': 'softmax',
                   }
 
-
         if init_path is not None:
             load_mat = np.load(osp.join(init_path, '{}.npy'.format(ix)))
         else:
-            load_mat = self._npr.uniform(-.1, .1, (self.params.embed_size, output_size))
+            load_mat = None
+
         self.Network['Dummy'].append(DenseFullyConnected(
             **params, weight=load_mat
         ))

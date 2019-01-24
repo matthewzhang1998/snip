@@ -95,7 +95,7 @@ def ptb_raw_data(data_path=None):
             '_vocab': vocabulary}
 
 
-def ptb_producer(raw_data, batch_size, num_steps, i, name=None):
+def ptb_producer(raw_data, batch_size, num_steps, name=None):
     """Iterate on the raw PTB data.
     This chunks up raw_data into batches of examples and returns Tensors that
     are drawn from these batches.
@@ -115,10 +115,13 @@ def ptb_producer(raw_data, batch_size, num_steps, i, name=None):
     data = np.reshape(raw_data[0: batch_size * batch_len], [batch_size, batch_len])
 
     epoch_size = (batch_len - 1) // num_steps
-    i = i % epoch_size
-    x = data[:, i * num_steps:(i+1)*num_steps]
-    y = data[:, i * num_steps+1:(i+1)*num_steps+1]
-    return x, y
+
+    ret = []
+    for i in range(epoch_size):
+        x = data[:, i * num_steps:(i+1)*num_steps]
+        y = data[:, i * num_steps+1:(i+1)*num_steps+1]
+        ret.append((x,y))
+    return ret
 
 class Dataset(object):
     """The input data."""
@@ -130,8 +133,7 @@ class Dataset(object):
         self.i = {key: 0 for key in self.data}
 
     def get_batch(self, scope='train'):
-        self.i[scope] += 1
-        return ptb_producer(self.data[scope], self.batch_size, self.num_steps, self.i[scope])
+        return ptb_producer(self.data[scope], self.batch_size, self.num_steps)
 
 if __name__ == '__main__':
     data = ptb_raw_data("simple-examples/data")

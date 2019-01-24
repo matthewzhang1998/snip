@@ -96,6 +96,11 @@ class PTBRunner(BaseRunner):
 
         self.Output['Error'] = tf.exp(self.Output['Loss'])
 
+        self.train_res = {
+            'Train_Error': self.Output['Error'],
+            'Train_Loss': self.Output['Loss']
+        }
+
         self.val_res = {
             'Val_Error': self.Output['Error'],
             'Val_Loss': self.Output['Loss']
@@ -136,43 +141,45 @@ class PTBRunner(BaseRunner):
             self.Output['Small_Train']
         ]
 
-    def train(self, i, features, labels):
-        # self.Dataset.train.next_batch(self.params.batch_size)
-        # print(features, labels)
+    def train(self, i):
+        start = 0
+        summary = {'Small': defaultdict(list)}
 
-        print(i)
+        for (b_feat, b_lab) in self._get_batch('train'):
+            feed_dict = {
+                self.Placeholder['Input_Feature']: b_feat,
+                self.Placeholder['Input_Label']: b_lab,
+            }
+            pred = self.Sess.run(
+                [self.Output['Pred']], feed_dict)
 
-        feed_dict = {
-            self.Placeholder['Input_Feature']: features,
-            self.Placeholder['Input_Label']: labels,
-            self.Placeholder['Learning_Rate']: self.learning_rate
-        }
-        pred, *_ = self.Sess.run(
-            [self.Output['Pred']] + self.train_op,
-            feed_dict
-        )
-        #self.Writer['Unit'].add_run_metadata(self.Sess.rmd, 'train' + str(i))
-        for key in pred:
-            summary = self.Sess.run(
-                self.train_summary,
-                {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
+            pred = pred[0]
+            for key in pred:
+                b_summary = self.Sess.run(
+                    self.train_res,
+                    {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
+                )
+
+                for summ in b_summary:
+                    summary[key][summ].append(b_summary[summ])
+
+        for key in summary:
+            for summ in summary[key]:
+                summary[key][summ] = np.mean(summary[key][summ])
+                print(i, key, summary[key][summ])
+
+            write_summary = self.Sess.run(
+                self.val_summary,
+                {self.val_placeholder[summ]: summary[key][summ]
+                 for summ in summary[key]}
             )
-
-            self.Writer[key].add_summary(summary, i)
-
-        self.learning_rate = self.decay_lr(i, self.learning_rate)
-        return features, labels
+            self.Writer[key].add_summary(write_summary, i)
 
     def val(self, i):
         start = 0
         summary = {'Small': defaultdict(list)}
 
-        for k in range(self.params.val_size):
-            end = start + self.params.batch_size
-
-            b_feat, b_lab = self._get_batch('val')
-            # self.Dataset.test.images, self.Dataset.test.labels
-
+        for (b_feat, b_lab) in self._get_batch('val'):
             feed_dict = {
                 self.Placeholder['Input_Feature']: b_feat,
                 self.Placeholder['Input_Label']: b_lab,
@@ -193,6 +200,7 @@ class PTBRunner(BaseRunner):
         for key in summary:
             for summ in summary[key]:
                 summary[key][summ] = np.mean(summary[key][summ])
+                print(i, key, summary[key][summ])
 
             write_summary = self.Sess.run(
                 self.val_summary,
@@ -202,12 +210,10 @@ class PTBRunner(BaseRunner):
             self.Writer[key].add_summary(write_summary, i)
 
     def run(self):
-        #slim.model_analyzer.analyze_vars(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES), print_info=True)
         self.Sess.run(tf.global_variables_initializer())
 
         for e in range(self.params.num_steps):
-            features, labels = self._get_batch()
-            self.train(e, features, labels)
+            self.train(e)
             if e % self.params.val_steps == 0:
                 self.val(e)
 

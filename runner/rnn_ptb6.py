@@ -310,8 +310,6 @@ class PTBRunner(BaseRunner):
         # self.Dataset.train.next_batch(self.params.batch_size)
         # print(features, labels)
 
-        print(i)
-
         feed_dict = {
             self.Placeholder['Input_Feature']: features,
             self.Placeholder['Input_Label']: labels,

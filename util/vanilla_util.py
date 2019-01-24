@@ -12,7 +12,10 @@ class DenseFullyConnected(object):
         self.hidden_size = hidden_size
 
         with tf.variable_scope(self._scope):
-            self.weight_initializer = tf.constant_initializer(weight)
+            if weight is not None:
+                self.weight_initializer = tf.constant_initializer(weight)
+            else:
+                self.weight_initializer = tf.glorot_uniform_initializer()
         self._train = train
 
         self._activation_type = activation_type
@@ -54,7 +57,10 @@ class DenseEmbedding(object):
         self.seed = seed
 
         with tf.variable_scope(self._scope):
-            self.weight = tf.Variable(weight, dtype=tf.float32)
+            if weight is not None:
+                self.weight = tf.Variable(weight, dtype=tf.float32)
+            else:
+                self.weight = tf.get_variable("embedding", [input_depth, hidden_size], dtype=tf.float32)
 
         self.initialize_op = tf.initialize_variables([self.weight])
 
