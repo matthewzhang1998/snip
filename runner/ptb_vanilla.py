@@ -236,7 +236,7 @@ class PTBRunner(BaseRunner):
     def decay_lr(self, i, learning_rate):
         if self.params.decay_scheme == 'exponential':
             if (i+1) % self.params.decay_iter == 0:
-                learning_rate *= self.params.decay_rate
+                learning_rate *= self.params.decay_rate ** max(i+1-self.params.start_epoch, 0.0)
 
         elif self.params.decay_scheme == 'none':
             pass
