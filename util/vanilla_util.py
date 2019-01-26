@@ -13,9 +13,8 @@ class DenseFullyConnected(object):
 
         with tf.variable_scope(self._scope):
             if weight is not None:
-                self.weight_initializer = tf.constant_initializer(weight)
-            else:
-                self.weight_initializer = tf.glorot_uniform_initializer()
+                self.weight = tf.Variable(weight, dtype=tf.float32)
+            self._b = tf.Variable(tf.zeros(shape=[hidden_size], dtype=tf.float32))
         self._train = train
 
         self._activation_type = activation_type
@@ -28,8 +27,7 @@ class DenseFullyConnected(object):
             tf.concat([[-1], [self.input_depth]], axis=0)
         )
         with tf.variable_scope(self._scope):
-            res = tf.layers.dense(flat_input, self.hidden_size,
-                  kernel_initializer=self.weight_initializer, reuse=tf.AUTO_REUSE)
+            res = tf.matmul(flat_input, self.weight) + self._b
 
             if self._activation_type is not None:
                 act_func = \
@@ -62,7 +60,7 @@ class DenseEmbedding(object):
             else:
                 self.weight = tf.get_variable("embedding", [input_depth, hidden_size], dtype=tf.float32)
 
-        self.initialize_op = tf.initialize_variables([self.weight])
+        # self.initialize_op = tf.initialize_variables([self.weight])
 
     def __call__(self, input_vec):
         output_shape = tf.shape(input_vec)

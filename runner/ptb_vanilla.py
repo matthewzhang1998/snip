@@ -39,7 +39,9 @@ class PTBRunner(BaseRunner):
             FileWriter(self.Dir+'/small', self.Sess.graph)
 
     def _build_snip(self):
-        with tf.variable_scope(self.scope):
+        initializer = tf.random_uniform_initializer(-self.params.init_scale, self.params.init_scale)
+
+        with tf.variable_scope(self.scope, initializer=initializer):
             self.Model['Small'] = Vanilla('small', self.params,
                 self.vocab_size, self.vocab_size, init_path=self.params.weight_dir)
 
@@ -71,21 +73,31 @@ class PTBRunner(BaseRunner):
                 self.Placeholder['Input_Feature']
             )
 
-            self.Output['Small_Loss'] = tf.reduce_mean(
+            self.Output['Small_Loss'] = tf.reduce_sum(
                 self.Tensor['Loss_Function'](
                     self.Output['Small_Pred'], self.Placeholder['Input_Label']
                 )
+            )/self.params.batch_size
+
+            self.Tensor['Train_Var'] = tf.trainable_variables()
+
+            self.Output['Small_Grad'], _ = tf.clip_by_global_norm(
+                tf.gradients(self.Output['Small_Loss'], self.Tensor['Train_Var']),
+                self.params.max_grad
             )
-            self.Output['Small_Train'] = \
-                self.Output['Optimizer'].minimize(self.Output['Small_Loss'])
+
+            self.Output['Optimizer'].apply_gradients(
+                zip(self.Output['Small_Grad'], self.Tensor['Train_Var']),
+                global_step=tf.train.get_or_create_global_step()
+            )
 
     def _build_summary(self):
-        self.Output['Loss'] = tf.reduce_mean(
+        self.Output['Loss'] = tf.reduce_sum(
             self.Tensor['Loss_Function'](
                 self.Placeholder['Input_Logits'],
                 self.Placeholder['Input_Label']
             )
-        )
+        )/self.params.batch_size
 
         self.Placeholder['Val_Error'] = tf.placeholder(
             dtype=tf.float32, shape=[]
@@ -93,7 +105,6 @@ class PTBRunner(BaseRunner):
         self.Placeholder['Val_Loss'] = tf.placeholder(
             dtype=tf.float32, shape=[]
         )
-
 
         self.Placeholder['Train_Error'] = tf.placeholder(
             dtype=tf.float32, shape=[]
@@ -158,19 +169,20 @@ class PTBRunner(BaseRunner):
         start = 0
         summary = {'Small': defaultdict(list)}
 
-        for (b_feat, b_lab) in self._get_batch('train'):
+        data = self._get_batch('train')
+        for (b_feat, b_lab) in data:
             feed_dict = {
                 self.Placeholder['Input_Feature']: b_feat,
                 self.Placeholder['Input_Label']: b_lab,
                 self.Placeholder['Learning_Rate']: self.learning_rate
             }
             pred = self.Sess.run(
-                [self.Output['Pred']], feed_dict)
+                self.train_op + [self.Output['Pred']], feed_dict)
 
             pred = pred[0]
             for key in pred:
-                b_summary, _ = self.Sess.run(
-                    [self.train_res]+self.train_op,
+                b_summary = self.Sess.run(
+                    self.train_res,
                     {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
                 )
 
