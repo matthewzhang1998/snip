@@ -177,7 +177,7 @@ class PTBRunner(BaseRunner):
                 self.Placeholder['Learning_Rate']: self.learning_rate
             }
             pred = self.Sess.run(
-                self.train_op + [self.Output['Pred']], feed_dict)
+                [self.Output['Pred']]+self.train_op, feed_dict)
 
             pred = pred[0]
             for key in pred:
