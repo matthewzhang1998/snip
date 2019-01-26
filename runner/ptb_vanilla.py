@@ -86,7 +86,7 @@ class PTBRunner(BaseRunner):
                 self.params.max_grad
             )
 
-            self.Output['Optimizer'].apply_gradients(
+            self.Output['Small_Train'] = self.Output['Optimizer'].apply_gradients(
                 zip(self.Output['Small_Grad'], self.Tensor['Train_Var']),
                 global_step=tf.train.get_or_create_global_step()
             )

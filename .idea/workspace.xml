@@ -17,7 +17,7 @@
       <change afterPath="$PROJECT_DIR$/main/tmp/data/train-labels-idx1-ubyte.gz" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/mnist_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/mnist_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/ptb_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/ptb_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/runner/base_runner.py" beforeDir="false" afterPath="$PROJECT_DIR$/runner/base_runner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/runner/ptb_vanilla.py" beforeDir="false" afterPath="$PROJECT_DIR$/runner/ptb_vanilla.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -71,24 +71,24 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="67" />
-          <entry key="py" value="95798" />
+          <entry key="py" value="95829" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="67" />
-          <entry key="Python" value="95798" />
+          <entry key="Python" value="95829" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/runner/base_runner.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="24" column="8" lean-forward="true" selection-start-line="24" selection-start-column="8" selection-end-line="24" selection-end-column="8" />
+            <state relative-caret-position="285">
+              <caret line="19" column="26" lean-forward="true" selection-start-line="19" selection-start-column="26" selection-end-line="19" selection-end-column="26" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
                 <marker date="1548536672037" expanded="true" signature="1471:1476" ph="..." />
@@ -133,7 +133,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/runner/rnn_ptb6.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4425">
+            <state relative-caret-position="375">
               <caret line="310" column="33" selection-start-line="310" selection-start-column="33" selection-end-line="310" selection-end-column="33" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
@@ -142,11 +142,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/runner/ptb_vanilla.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="300">
-              <caret line="115" column="31" selection-start-line="115" selection-start-column="31" selection-end-line="115" selection-end-column="38" />
+              <caret line="88" column="41" selection-start-line="88" selection-start-column="41" selection-end-line="88" selection-end-column="41" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -298,8 +298,8 @@
         <option value="$PROJECT_DIR$/config/rnn_config.py" />
         <option value="$PROJECT_DIR$/model/networks/rnn_vanilla.py" />
         <option value="$PROJECT_DIR$/util/vanilla_util.py" />
-        <option value="$PROJECT_DIR$/runner/ptb_vanilla.py" />
         <option value="$PROJECT_DIR$/runner/base_runner.py" />
+        <option value="$PROJECT_DIR$/runner/ptb_vanilla.py" />
       </list>
     </option>
   </component>
@@ -828,16 +828,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/runner/rnn_ptb6.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4425">
-          <caret line="310" column="33" selection-start-line="310" selection-start-column="33" selection-end-line="310" selection-end-column="33" />
-          <folding>
-            <element signature="e#0#21#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/util/optimizer_util.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -880,16 +870,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/runner/ptb_vanilla.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="115" column="31" selection-start-line="115" selection-start-column="31" selection-end-line="115" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#21#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/data/load_pen.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="449">
@@ -903,11 +883,31 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/runner/base_runner.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="24" column="8" lean-forward="true" selection-start-line="24" selection-start-column="8" selection-end-line="24" selection-end-column="8" />
+        <state relative-caret-position="285">
+          <caret line="19" column="26" lean-forward="true" selection-start-line="19" selection-start-column="26" selection-end-line="19" selection-end-column="26" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
             <marker date="1548536672037" expanded="true" signature="1471:1476" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/rnn_ptb6.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="310" column="33" selection-start-line="310" selection-start-column="33" selection-end-line="310" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runner/ptb_vanilla.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="88" column="41" selection-start-line="88" selection-start-column="41" selection-end-line="88" selection-end-column="41" />
+          <folding>
+            <element signature="e#0#21#0" expanded="true" />
           </folding>
         </state>
       </provider>
