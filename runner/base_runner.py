@@ -21,11 +21,8 @@ def MSELoss(logits, labels):
     return tf.losses.mean_squared_error(labels, logits)
 
 def Seq2SeqLoss(logits, labels):
-    logits = tf.reshape(logits, [-1, logits.get_shape().as_list()[-1]])
-    labels = tf.reshape(labels, [-1])
-
-    return tf.contrib.legacy_seq2seq.sequence_loss_by_example(
-        [logits], [labels], tf.ones_like(logits, dtype=tf.float32),
+    return tf.contrib.seq2seq.sequence_loss(
+        [logits], [labels], tf.ones_like(logits[:,:,-1], dtype=tf.float32),
         average_across_timesteps=True,
         average_across_batch=True
     )

@@ -73,11 +73,11 @@ class PTBRunner(BaseRunner):
                 self.Placeholder['Input_Feature']
             )
 
-            self.Output['Small_Loss'] = tf.reduce_sum(
+            self.Output['Small_Loss'] = tf.reduce_mean(
                 self.Tensor['Loss_Function'](
                     self.Output['Small_Pred'], self.Placeholder['Input_Label']
                 )
-            )/self.params.batch_size
+            )
 
             self.Tensor['Train_Var'] = tf.trainable_variables()
 
@@ -92,12 +92,12 @@ class PTBRunner(BaseRunner):
             )
 
     def _build_summary(self):
-        self.Output['Loss'] = tf.reduce_sum(
+        self.Output['Loss'] = tf.reduce_mean(
             self.Tensor['Loss_Function'](
                 self.Placeholder['Input_Logits'],
                 self.Placeholder['Input_Label']
             )
-        )/self.params.batch_size
+        )
 
         self.Placeholder['Val_Error'] = tf.placeholder(
             dtype=tf.float32, shape=[]
