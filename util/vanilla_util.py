@@ -15,7 +15,7 @@ class DenseFullyConnected(object):
             if weight is not None:
                 self.weight = tf.Variable(weight, dtype=tf.float32)
             else:
-                self.weight = tf.get_variable([input_depth, hidden_size], dtype=tf.float32)
+                self.weight = tf.get_variable('w', [input_depth, hidden_size], dtype=tf.float32)
             self._b = tf.Variable(tf.zeros(shape=[hidden_size], dtype=tf.float32))
         self._train = train
 
