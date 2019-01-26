@@ -22,7 +22,7 @@ def MSELoss(logits, labels):
 
 def Seq2SeqLoss(logits, labels):
     return tf.contrib.seq2seq.sequence_loss(
-        [logits], [labels], tf.ones_like(logits[:,:,-1], dtype=tf.float32),
+        logits, labels, tf.ones_like(logits[:,:,-1], dtype=tf.float32),
         average_across_timesteps=True,
         average_across_batch=True
     )
