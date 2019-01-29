@@ -323,8 +323,8 @@ class PTBRunner(BaseRunner):
         }
 
         self.train_summary = {
-            'Train_Error': self.Output['Error'],
-            'Train_Loss': self.Output['Loss']
+            'Train_Error': self.Placeholder['Train_Error'],
+            'Train_Loss': self.Placeholder['Train_Loss']
         }
         self.val_summary = {
             'Val_Error': self.Placeholder['Val_Error'],
