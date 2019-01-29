@@ -166,8 +166,10 @@ class PTBRunner(BaseRunner):
                 if self.params.rnn_use_dense:
                     random_list = np.zeros((ni+nh, 4*nh))
                     top_list = np.zeros((ni+nh, 4*nh))
-                    random_list[rand_vals[:,1:]] = rand_vals[:,0]
-                    top_list[top_vals[:,1:]] = top_vals[:,0]
+                    random_list[rand_vals[:,1].astype(np.int32),
+                        rand_vals[:,2].astype(np.int32)] = rand_vals[:,0]
+                    top_list[top_vals[:,1].astype(np.int32),
+                        top_vals[:,2].astype(np.int32)] = top_vals[:,0]
 
                 else:
                     random_list = [rand_vals[:,0], rand_vals[:, 1:]]
