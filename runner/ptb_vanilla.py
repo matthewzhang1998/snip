@@ -39,7 +39,8 @@ class PTBRunner(BaseRunner):
             FileWriter(self.Dir+'/small', self.Sess.graph)
 
     def _build_snip(self):
-        initializer = tf.random_uniform_initializer(-self.params.init_scale, self.params.init_scale)
+        initializer = tf.random_uniform_initializer(
+            -self.params.rnn_init_scale, self.params.rnn_init_scale)
 
         with tf.variable_scope(self.scope, initializer=initializer):
             self.Model['Small'] = Vanilla('small', self.params,

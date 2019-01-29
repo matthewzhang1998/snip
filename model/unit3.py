@@ -30,8 +30,7 @@ class Unit(object):
         self.Op = {}
 
         self.Snip['Dummy_Kernel'] = self.model.get_dummy_variables()
-        if 'mlp' in self.model.Network['Type']:
-            self.Snip['Roll'] = self.model.get_roll_variables()
+        self.Snip['Dummy_Roll'] = self.model.get_roll_variables()
 
         self.Tensor['Unit_Grad'] = [None for _ in self.Snip['Dummy_Kernel']]
         self.Info['Type'] = self.model.Network['Type']

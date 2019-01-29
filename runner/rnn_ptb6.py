@@ -7,6 +7,7 @@ from runner.base_runner import *
 from util.optimizer_util import *
 from model.unit3 import *
 from util.logger_util import *
+from util.initializer_util import *
 from util.sparse_util import *
 import scipy.misc
 from collections import defaultdict
@@ -80,6 +81,7 @@ class PTBRunner(BaseRunner):
             self.Tensor['Unit_Grad'] = self.Model['Unit'].Tensor['Unit_Grad']
 
             self.Placeholder['Unit_Kernel'] = self.Model['Unit'].Snip['Dummy_Kernel']
+            self.Placeholder['Unit_Rotate'] = self.Model['Unit'].Snip['Dummy_Roll']
 
             self.Tensor['Variable_Initializer'] = {}
 
@@ -98,7 +100,7 @@ class PTBRunner(BaseRunner):
 
         final_list = []
 
-        features, labels = self._get_batch()
+        features, labels = self._get_batch('train')[0]
         if type == 'rnn':
             use_dense = False
 
@@ -115,17 +117,16 @@ class PTBRunner(BaseRunner):
 
                 ix = 0
 
-                def he_initializer(shape, npr, stddev=1.0):
-                    out = npr.normal(loc=0, scale=np.sqrt(2/shape[0]), size=shape).astype(np.float32)
-                    return out
-
                 for j in range(nh//nu+1):
-                    weights = he_initializer((ni+nh,4*nu), self._npr)
+                    weights = get_init(self.params.rnn_init_type)(
+                        (ni+nh,4*nu), self._npr, self.params.rnn_init_scale
+                    )
 
                     feed_dict = {
                         self.Placeholder['Unit_Kernel'][i]: weights,
                         self.Placeholder['Input_Feature']: features,
                         self.Placeholder['Input_Label']: labels,
+                        self.Placeholder['Unit_Rotate'][i]: j*nu
                     }
                     grads, pred = self.Sess.run(
                         [self.Tensor['Unit_Grad'][i], self.Model['Unit'].Tensor['Unit_Pred']], feed_dict
@@ -181,7 +182,9 @@ class PTBRunner(BaseRunner):
             top_vals = np.zeros((t_ix, 3))
             rand_vals = np.zeros((t_ix, 3))
 
-            weights = np.load(osp.join('../weights/rnn', '{}.npy'.format(i)))
+            weights = get_init(self.params.rnn_init_type)(
+                (ni,nh), self._npr, self.params.rnn_init_scale
+            )
             random_list = top_list = weights
             all_weights = weights
 
@@ -199,7 +202,9 @@ class PTBRunner(BaseRunner):
 
             t_ix = int(nh * ni * (1 - k_ratio))
 
-            weights = np.load(osp.join('../weights/rnn', '{}.npy'.format(i)))
+            weights = get_init(self.params.rnn_init_type)(
+                (ni, nh), self._npr, self.params.rnn_init_scale
+            )
             random_list = top_list = weights
             all_weights = weights
 
@@ -262,6 +267,10 @@ class PTBRunner(BaseRunner):
             'Val_Error': self.Output['Error'],
             'Val_Loss': self.Output['Loss']
         }
+        self.train_res = {
+            'Train_Error': self.Output['Error'],
+            'Train_Loss': self.Output['Loss']
+        }
 
         self.val_placeholder = {
             'Val_Error': self.Placeholder['Val_Error'],
@@ -306,41 +315,49 @@ class PTBRunner(BaseRunner):
             self.Output['Unit_Train']
         ]
 
-    def train(self, i, features, labels):
-        # self.Dataset.train.next_batch(self.params.batch_size)
-        # print(features, labels)
+    def train(self, i):
+        start = 0
+        summary = {'Unit': defaultdict(list)}
 
-        feed_dict = {
-            self.Placeholder['Input_Feature']: features,
-            self.Placeholder['Input_Label']: labels,
-            self.Placeholder['Learning_Rate']: self.learning_rate
-        }
-        pred, *_ = self.Sess.run(
-            [self.Output['Pred']] + self.train_op,
-            feed_dict
-        )
-        #self.Writer['Unit'].add_run_metadata(self.Sess.rmd, 'train' + str(i))
-        for key in pred:
-            summary = self.Sess.run(
+        data = self._get_batch('train')
+        for (b_feat, b_lab) in data:
+            feed_dict = {
+                self.Placeholder['Input_Feature']: b_feat,
+                self.Placeholder['Input_Label']: b_lab,
+                self.Placeholder['Learning_Rate']: self.learning_rate
+            }
+            pred = self.Sess.run(
+                [self.Output['Pred']]+self.train_op, feed_dict)
+
+            pred = pred[0]
+            for key in pred:
+                b_summary = self.Sess.run(
+                    self.train_res,
+                    {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
+                )
+
+                for summ in b_summary:
+                    summary[key][summ].append(b_summary[summ])
+
+        for key in summary:
+            for summ in summary[key]:
+                summary[key][summ] = np.mean(summary[key][summ])
+                print(i, summ, summary[key][summ])
+
+            write_summary = self.Sess.run(
                 self.train_summary,
-                {**feed_dict, self.Placeholder['Input_Logits']: pred[key]}
+                {self.train_placeholder[summ]: summary[key][summ]
+                 for summ in summary[key]}
             )
-
-            self.Writer[key].add_summary(summary, i)
+            self.Writer[key].add_summary(write_summary, i)
 
         self.learning_rate = self.decay_lr(i, self.learning_rate)
-        return features, labels
 
     def val(self, i):
         start = 0
         summary = {'Unit': defaultdict(list)}
 
-        for k in range(self.params.val_size):
-            end = start + self.params.batch_size
-
-            b_feat, b_lab = self._get_batch('val')
-            # self.Dataset.test.images, self.Dataset.test.labels
-
+        for (b_feat, b_lab) in self._get_batch('val'):
             feed_dict = {
                 self.Placeholder['Input_Feature']: b_feat,
                 self.Placeholder['Input_Label']: b_lab,
@@ -361,6 +378,7 @@ class PTBRunner(BaseRunner):
         for key in summary:
             for summ in summary[key]:
                 summary[key][summ] = np.mean(summary[key][summ])
+                print(i, summ, summary[key][summ])
 
             write_summary = self.Sess.run(
                 self.val_summary,
@@ -370,18 +388,17 @@ class PTBRunner(BaseRunner):
             self.Writer[key].add_summary(write_summary, i)
 
     def run(self):
-        #slim.model_analyzer.analyze_vars(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES), print_info=True)
+        self.Sess.run(tf.global_variables_initializer())
 
         for e in range(self.params.num_steps):
-            features, labels = self._get_batch()
-            self.train(e, features, labels)
+            self.train(e)
             if e % self.params.val_steps == 0:
                 self.val(e)
 
     def decay_lr(self, i, learning_rate):
         if self.params.decay_scheme == 'exponential':
             if (i+1) % self.params.decay_iter == 0:
-                learning_rate *= self.params.decay_rate
+                learning_rate *= self.params.decay_rate ** max(i+1-self.params.start_epoch, 0.0)
 
         elif self.params.decay_scheme == 'none':
             pass

@@ -178,4 +178,7 @@ class RNNModel(BaseModel):
         return dummy_weights
 
     def get_roll_variables(self):
-        pass
+        dummy_roll = []
+        for net in self.Network['Dummy']:
+            dummy_roll.append(net.roll)
+        return dummy_roll

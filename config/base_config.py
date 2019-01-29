@@ -3,9 +3,9 @@ import argparse
 def get_base_parser():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--learning_rate', type=float, default=0.001)
+    parser.add_argument('--learning_rate', type=float, default=0.0005)
     parser.add_argument('--decay_scheme', type=str, default='exponential')
-    parser.add_argument('--decay_rate', type=float, default=0.8)
+    parser.add_argument('--decay_rate', type=float, default=0.5)
     parser.add_argument('--start_epoch', type=int, default=3)
 
     parser.add_argument('--max_grad', type=float, default=5)
@@ -62,7 +62,7 @@ def get_base_parser():
     parser.add_argument('--drw_temperature', type=int, default=0.00)
 
     parser.add_argument('--weight_dir', type=str, default=None)
-    parser.add_argument('--exp', type=str, default='ptb4')
+    parser.add_argument('--exp', type=str, default='ptb6')
 
 
     return parser

@@ -150,6 +150,9 @@ class SparseDummyLSTMCell(object):
         self._dummy_bias = tf.zeros(
             shape=[4 * self._num_unitwise], dtype=tf.float32
         )
+        self.roll = tf.placeholder_with_default(
+            tf.zeros([1], dtype=tf.int32), dtype=tf.int32
+        )
 
         self.output_size = num_units
         self.state_size = 2*num_units
@@ -208,6 +211,11 @@ class SparseDummyLSTMCell(object):
         j = tf.concat([j, random_j], axis=-1)
         o = tf.concat([o, random_o], axis=-1)
         f = tf.concat([f, random_f], axis=-1)
+
+        i = tf.roll(i, self.roll, -1)
+        j = tf.roll(j, self.roll, -1)
+        o = tf.roll(o, self.roll, -1)
+        f = tf.roll(f, self.roll, -1)
 
         c = (tf.sigmoid(f + self._forget_bias) * c_prev + tf.sigmoid(i) *
              self._activation(j))
@@ -372,6 +380,7 @@ class SparseDummyRecurrentNetwork(object):
         with tf.variable_scope(scope):
             self._cell = _cell_proto(hidden_size, **_cell_kwargs, input_depth=input_depth,
                 seed=seed, num_unitwise=num_unitwise)
+            self.roll = self._cell.roll
 
     def __call__(self, input_tensor, hidden_states=None):
         print(input_tensor, hidden_states)
@@ -618,6 +627,7 @@ class SparseDummyEmbedding(object):
         self.seed = seed
         with tf.variable_scope(self._scope):
             self.weight = tf.placeholder(shape=[input_depth, hidden_size], dtype=tf.float32)
+        self.roll = None
 
     def __call__(self, input_vec):
         output_shape = tf.shape(input_vec)
