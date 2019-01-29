@@ -151,7 +151,7 @@ class SparseDummyLSTMCell(object):
             shape=[4 * self._num_unitwise], dtype=tf.float32
         )
         self.roll = tf.placeholder_with_default(
-            tf.zeros([1], dtype=tf.int32), dtype=tf.int32
+            tf.zeros([1], dtype=tf.int32), [1]
         )
 
         self.output_size = num_units
