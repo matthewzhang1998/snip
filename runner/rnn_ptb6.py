@@ -126,7 +126,7 @@ class PTBRunner(BaseRunner):
                         self.Placeholder['Unit_Kernel'][i]: weights,
                         self.Placeholder['Input_Feature']: features,
                         self.Placeholder['Input_Label']: labels,
-                        self.Placeholder['Unit_Rotate'][i]: j*nu
+                        self.Placeholder['Unit_Rotate'][i]: [j*nu]
                     }
                     grads, pred = self.Sess.run(
                         [self.Tensor['Unit_Grad'][i], self.Model['Unit'].Tensor['Unit_Pred']], feed_dict
