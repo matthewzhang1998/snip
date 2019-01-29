@@ -102,7 +102,7 @@ class PTBRunner(BaseRunner):
 
         features, labels = self._get_batch('train')[0]
         if type == 'rnn':
-            use_dense = False
+            use_dense = True
 
             if 'lstm' in info['recurrent_cell_type']:
                 nh = info['hidden_size']

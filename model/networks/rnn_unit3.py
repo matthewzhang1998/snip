@@ -105,7 +105,8 @@ class RNNModel(BaseModel):
         if not use_dense:
             if self.Network['Type'][ii] == 'rnn':
                 self.Network['Dummy'][ii] = SparseRecurrentNetwork(
-                    **self.Network['Params'][ii], sparse_list=sparse_var
+                    **self.Network['Params'][ii], sparse_list=sparse_var,
+                    swap_memory=self.params.rnn_swap_memory
                 )
 
             elif self.Network['Type'][ii] == 'mlp':

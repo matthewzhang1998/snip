@@ -15,5 +15,6 @@ def rnn_parser(parser):
 
     parser.add_argument('--rnn_init_scale', type=float, default=0.1)
     parser.add_argument('--rnn_init_type', type=str, default='uniform')
+    parser.add_argument('--rnn_swap_memory', type=int, default=0)
 
     return parser
