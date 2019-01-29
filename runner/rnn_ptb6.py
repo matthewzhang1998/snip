@@ -269,6 +269,12 @@ class PTBRunner(BaseRunner):
         self.Placeholder['Val_Loss'] = tf.placeholder(
             dtype=tf.float32, shape=[]
         )
+        self.Placeholder['Train_Error'] = tf.placeholder(
+            dtype=tf.float32, shape=[]
+        )
+        self.Placeholder['Train_Loss'] = tf.placeholder(
+            dtype=tf.float32, shape=[]
+        )
 
         self.Output['Error'] = tf.exp(self.Output['Loss'])
 
