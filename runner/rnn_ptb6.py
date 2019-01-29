@@ -102,7 +102,7 @@ class PTBRunner(BaseRunner):
 
         features, labels = self._get_batch('train')[0]
         if type == 'rnn':
-            use_dense = True
+            use_dense = self.params.rnn_use_dense
 
             if 'lstm' in info['recurrent_cell_type']:
                 nh = info['hidden_size']
@@ -163,8 +163,15 @@ class PTBRunner(BaseRunner):
 
                         ix += 1
 
-                random_list = [rand_vals[:,0], rand_vals[:, 1:]]
-                top_list = [top_vals[:,0], top_vals[:, 1:]]
+                if self.params.rnn_use_dense:
+                    random_list = np.zeros((ni+nh, 4*nh))
+                    top_list = np.zeros((ni+nh, 4*nh))
+                    random_list[rand_vals[:,1:]] = rand_vals[:,0]
+                    top_list[top_vals[:,1:]] = top_vals[:,0]
+
+                else:
+                    random_list = [rand_vals[:,0], rand_vals[:, 1:]]
+                    top_list = [top_vals[:,0], top_vals[:, 1:]]
 
         elif type == 'mlp' and info['scope'] != 'softmax':
             use_dense = True
