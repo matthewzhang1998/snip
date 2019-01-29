@@ -17,6 +17,7 @@
       <change afterPath="$PROJECT_DIR$/main/tmp/data/train-labels-idx1-ubyte.gz" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/mnist_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/mnist_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main/ptb_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/ptb_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/sparse_util.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/sparse_util.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -70,13 +71,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="67" />
-          <entry key="py" value="97121" />
+          <entry key="py" value="97131" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="67" />
-          <entry key="Python" value="97121" />
+          <entry key="Python" value="97131" />
         </counts>
       </usages-collector>
     </session>
@@ -135,11 +136,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/runner/ptb_vanilla.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-120">
-              <caret line="37" column="32" lean-forward="true" selection-start-line="37" selection-start-column="32" selection-end-line="37" selection-end-column="32" />
+            <state relative-caret-position="90">
+              <caret line="51" column="51" lean-forward="true" selection-start-line="51" selection-start-column="51" selection-end-line="51" selection-end-column="51" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
               </folding>
@@ -168,15 +169,15 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="153" column="40" selection-start-line="153" selection-start-column="40" selection-end-line="153" selection-end-column="40" />
+            <state relative-caret-position="96">
+              <caret line="217" column="38" selection-start-line="217" selection-start-column="38" selection-end-line="217" selection-end-column="38" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
-                <marker date="1548729961618" expanded="true" signature="5928:5934" ph="..." />
-                <marker date="1548729961618" expanded="true" signature="31614:31619" ph="..." />
+                <marker date="1548790745054" expanded="true" signature="5917:5923" ph="..." />
+                <marker date="1548790745054" expanded="true" signature="31611:31616" ph="..." />
               </folding>
             </state>
           </provider>
@@ -219,8 +220,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>RNNCell</find>
-      <find>Dummy</find>
       <find>DRW_Newval</find>
       <find>drw</find>
       <find>rand_num</find>
@@ -246,9 +245,11 @@
       <find>pred =</find>
       <find>decay</find>
       <find>get_in</find>
-      <find>init_scale</find>
       <find>train_res</find>
       <find>placeholder_</find>
+      <find>init_scale</find>
+      <find>placeholder_with_default</find>
+      <find>tf.roll</find>
     </findStrings>
     <replaceStrings>
       <replace>num_layer</replace>
@@ -309,8 +310,8 @@
         <option value="$PROJECT_DIR$/runner/ptb_vanilla.py" />
         <option value="$PROJECT_DIR$/util/initializer_util.py" />
         <option value="$PROJECT_DIR$/runner/rnn_ptb6.py" />
-        <option value="$PROJECT_DIR$/util/sparse_util.py" />
         <option value="$PROJECT_DIR$/config/rnn_config.py" />
+        <option value="$PROJECT_DIR$/util/sparse_util.py" />
       </list>
     </option>
   </component>
@@ -935,18 +936,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="153" column="40" selection-start-line="153" selection-start-column="40" selection-end-line="153" selection-end-column="40" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1548729961618" expanded="true" signature="5928:5934" ph="..." />
-            <marker date="1548729961618" expanded="true" signature="31614:31619" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/config/rnn_config.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -956,10 +945,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/runner/ptb_vanilla.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-120">
-          <caret line="37" column="32" lean-forward="true" selection-start-line="37" selection-start-column="32" selection-end-line="37" selection-end-column="32" />
+        <state relative-caret-position="90">
+          <caret line="51" column="51" lean-forward="true" selection-start-line="51" selection-start-column="51" selection-end-line="51" selection-end-column="51" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/sparse_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="96">
+          <caret line="217" column="38" selection-start-line="217" selection-start-column="38" selection-end-line="217" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1548790745054" expanded="true" signature="5917:5923" ph="..." />
+            <marker date="1548790745054" expanded="true" signature="31611:31616" ph="..." />
           </folding>
         </state>
       </provider>

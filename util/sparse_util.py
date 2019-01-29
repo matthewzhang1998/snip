@@ -212,10 +212,10 @@ class SparseDummyLSTMCell(object):
         o = tf.concat([o, random_o], axis=-1)
         f = tf.concat([f, random_f], axis=-1)
 
-        i = tf.roll(i, self.roll, -1)
-        j = tf.roll(j, self.roll, -1)
-        o = tf.roll(o, self.roll, -1)
-        f = tf.roll(f, self.roll, -1)
+        i = tf.roll(i, self.roll, [-1])
+        j = tf.roll(j, self.roll, [-1])
+        o = tf.roll(o, self.roll, [-1])
+        f = tf.roll(f, self.roll, [-1])
 
         c = (tf.sigmoid(f + self._forget_bias) * c_prev + tf.sigmoid(i) *
              self._activation(j))
