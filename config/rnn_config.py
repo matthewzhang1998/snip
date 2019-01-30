@@ -18,4 +18,6 @@ def rnn_parser(parser):
     parser.add_argument('--rnn_swap_memory', type=int, default=0)
     parser.add_argument('--rnn_use_dense', type=int, default=1)
 
+    parser.add_argument('--rnn_prune_method', type=str, default='unit') # unit, block, random
+
     return parser

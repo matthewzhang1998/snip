@@ -110,69 +110,96 @@ class PTBRunner(BaseRunner):
                 nu = self.params.num_unitwise_rnn
                 nu = nh if nu > nh else nu
 
-                h_ix = int((1-self.params.unit_k)*(ni+nh)*4*nh/(nh//nu+1))
+                h_ix = int((1-self.params.prune_k)*(ni+nh)*4*nh/(nh//nu+1))
                 t_ix = h_ix*(nh//nu+1)
                 top_vals = np.zeros((t_ix, 3), dtype=np.float32)
-                rand_vals = np.zeros((t_ix, 3), dtype=np.float32)
-
                 ix = 0
 
-                for j in range(nh//nu+1):
+                if self.params.rnn_prune_method in ['unit', 'block']:
+                    if self.params.rnn_prune_method == 'block':
+                        b_ix = int(h_ix * self.params.block_k * nu/(ni+nh))
+                        r_ix = h_ix - 4 * b_ix
+
+                        assert (r_ix > 0)
+
+                    for j in range(nh//nu+1):
+                        weights = get_init(self.params.rnn_init_type)(
+                            (ni+nh,4*nu), self._npr, self.params.rnn_init_scale
+                        )
+
+                        feed_dict = {
+                            self.Placeholder['Unit_Kernel'][i]: weights,
+                            self.Placeholder['Input_Feature']: features,
+                            self.Placeholder['Input_Label']: labels,
+                            self.Placeholder['Unit_Rotate'][i]: [j*nu]
+                        }
+                        grads, pred = self.Sess.run(
+                            [self.Tensor['Unit_Grad'][i], self.Model['Unit'].Tensor['Unit_Pred']], feed_dict
+                        )
+
+                        grads = grads[0]
+
+                        # scipy.misc.imsave(osp.join(self.Dir, 'grad{}.jpg'.format(info['scope'])), grads)
+
+                        if self.params.rnn_prune_method == 'unit':
+                            top_k = np.unravel_index(
+                                np.argpartition(np.abs(grads), -h_ix, axis=None)[-h_ix:],
+                                (ni+nh,4*nu)
+                            )
+                            for k in range(len(top_k[0])):
+                                l,m = top_k[0][k], top_k[1][k]
+                                if j*nu + m%nu >= nh:
+                                    # ignore
+                                    top_vals[ix] = [0,0,0]
+                                else:
+                                    top_vals[ix] = [weights[l][m], l, m%nu + j*nu + m//nu*nh]
+
+                                ix += 1
+
+                        elif self.params.rnn_prune_method == 'block':
+                            block = grads[ni+j*nu:max(ni+(j+1)*nu, ni+nh),:]
+                            grads[ni+j*nu:max(ni+(j+1)*nu, ni+nh),:] = 0
+
+                            top_r_k1, top_r_k2 = np.unravel_index(
+                                np.argpartition(np.abs(grads), -r_ix, axis=None)[-r_ix:],
+                                (ni+nh, 4*nu)
+                            )
+                            top_b_k1, top_b_k2 = np.unravel_index(
+                                np.argpartition(np.abs(block), -b_ix, axis=None)[-b_ix:],
+                                block.shape
+                            )
+                            top_b_k1 += ni+j*nu
+
+                            top_k = (np.concatenate(top_r_k1, top_b_k1),
+                                np.concatenate(top_r_k2, top_b_k2))
+
+                            for k in range(len(top_k[0])):
+                                l, m = top_k[0][k], top_k[1][k]
+                                if j * nu + m % nu >= nh:
+                                    # ignore
+                                    top_vals[ix] = [0, 0, 0]
+                                else:
+                                    top_vals[ix] = [weights[l][m], l, m % nu + j * nu + m // nu * nh]
+
+                                ix += 1
+
+                elif self.params.prune_method == 'random':
                     weights = get_init(self.params.rnn_init_type)(
-                        (ni+nh,4*nu), self._npr, self.params.rnn_init_scale
+                        t_ix, self._npr, self.params.rnn_init_scale
                     )
 
-                    feed_dict = {
-                        self.Placeholder['Unit_Kernel'][i]: weights,
-                        self.Placeholder['Input_Feature']: features,
-                        self.Placeholder['Input_Label']: labels,
-                        self.Placeholder['Unit_Rotate'][i]: [j*nu]
-                    }
-                    grads, pred = self.Sess.run(
-                        [self.Tensor['Unit_Grad'][i], self.Model['Unit'].Tensor['Unit_Pred']], feed_dict
-                    )
+                    n = np.random.choice(np.arange((ni+nh)*4*nh), size=t_ix, replace=False)
+                    inds = np.unravel_index(n, (ni+nh, 4*nh))
 
-                    grads = grads[0]
-
-                    scipy.misc.imsave(osp.join(self.Dir, 'grad{}.jpg'.format(info['scope'])), grads)
-                    top_k = np.unravel_index(
-                        np.argpartition(np.abs(grads), -h_ix, axis=None)[-h_ix:],
-                        (ni+nh,4*nu)
-                    )
-                    random_k = np.unravel_index(self._npr.choice(np.arange(weights.size),
-                        size = (h_ix,), replace=False),
-                        (ni+nh,4*nu))
-
-                    for k in range(len(top_k[0])):
-                        l,m = top_k[0][k], top_k[1][k]
-
-                        l2, m2 = random_k[0][k], random_k[1][k]
-                        if j*nu + m%nu >= nh:
-                            # ignore
-                            top_vals[ix] = [0,0,0]
-
-                        else:
-                            top_vals[ix] = [weights[l][m], l, m%nu + j*nu + m//nu*nh]
-
-                        if j*nu + m2%nu >= nh:
-                            # ignore
-                            rand_vals[ix] = [0,0,0]
-
-                        else:
-                            rand_vals[ix] = [weights[l2][m2], l2, m2%nu + j*nu + m2//nu*nh]
-
-                        ix += 1
+                    for k in range(len(weights)):
+                        top_vals[k] = [weights[k], inds[0][k], inds[1][k]]
 
                 if self.params.rnn_use_dense:
-                    random_list = np.zeros((ni+nh, 4*nh))
                     top_list = np.zeros((ni+nh, 4*nh))
-                    random_list[rand_vals[:,1].astype(np.int32),
-                        rand_vals[:,2].astype(np.int32)] = rand_vals[:,0]
                     top_list[top_vals[:,1].astype(np.int32),
                         top_vals[:,2].astype(np.int32)] = top_vals[:,0]
 
                 else:
-                    random_list = [rand_vals[:,0], rand_vals[:, 1:]]
                     top_list = [top_vals[:,0], top_vals[:, 1:]]
 
         elif type == 'mlp' and info['scope'] != 'softmax':
@@ -188,16 +215,14 @@ class PTBRunner(BaseRunner):
                 k_ratio = 0.99
 
             t_ix = int(nh*ni*(1-k_ratio))
-            top_vals = np.zeros((t_ix, 3))
-            rand_vals = np.zeros((t_ix, 3))
 
             weights = get_init(self.params.rnn_init_type)(
                 (ni,nh), self._npr, self.params.rnn_init_scale
             )
-            random_list = top_list = weights
+            top_list = weights
             all_weights = weights
 
-            scipy.misc.imsave(osp.join(self.Dir, '{}.jpg'.format(info['scope'])), weights)
+            # scipy.misc.imsave(osp.join(self.Dir, '{}.jpg'.format(info['scope'])), weights)
 
         elif type == 'embedding' or info['scope'] == 'softmax':
             use_dense = True
@@ -214,15 +239,14 @@ class PTBRunner(BaseRunner):
             weights = get_init(self.params.rnn_init_type)(
                 (ni, nh), self._npr, self.params.rnn_init_scale
             )
-            random_list = top_list = weights
-            all_weights = weights
+            top_list = weights
 
-            scipy.misc.imsave(osp.join(self.Dir, '{}.jpg'.format(info['scope'])), weights)
+            # scipy.misc.imsave(osp.join(self.Dir, '{}.jpg'.format(info['scope'])), weights)
 
-        self._build_networks(top_list, random_list, i, use_dense=use_dense)
+        self._build_networks(top_list, i, use_dense=use_dense)
         self.Sess.run(self.Tensor['Variable_Initializer'])
 
-    def _build_networks(self, unit_list, random_list, i, use_dense=False):
+    def _build_networks(self, unit_list, i, use_dense=False):
         self.Model['Unit'].build_sparse(unit_list, i, use_dense=use_dense)
 
         if i != 0:
