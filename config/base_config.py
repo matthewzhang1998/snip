@@ -27,7 +27,8 @@ def get_base_parser():
     parser.add_argument('--snip_k', type=float, default=0.99)
     parser.add_argument('--l2_k', type=float, default=0.99)
     parser.add_argument('--random_k', type=float, default=0.99)
-    parser.add_argument('--unit_k', type=float, default=0.99)
+    parser.add_argument('--prune_k', type=float, default=0.999)
+    parser.add_argument('--block_k', type=float, default=0.98)
 
     parser.add_argument('--log_dir', type=str, default='../log/log')
     parser.add_argument('--model_type', type=str, default='rnn')
