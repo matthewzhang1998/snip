@@ -1,17 +1,27 @@
 import init_path
 from config.base_config import *
 from config.rnn_config import *
-from runner.ptb_vanilla import *
+
+import runner.ptb_vanilla
+import runner.ptb_sparse
+import runner.ptb_drw
+import runner.ptb_snip
 
 def main():
     import logging
     import tensorflow
 
-    tf.logging.set_verbosity(tf.logging.INFO)
     parser = get_base_parser()
     parser = rnn_parser(parser)
     params = make_parser(parser)
-    Runner = PTBRunner('mnist', params)
+    if params.exp_id == 'sparse':
+        Runner = runner.ptb_sparse.PTBRunner('ptb', params)
+    elif params.exp_id == 'vanilla':
+        Runner = runner.ptb_vanilla.PTBRunner('ptb', params)
+    elif params.exp_id == 'snip':
+        Runner = runner.ptb_snip.PTBRunner('ptb', params)
+    elif params.exp_id == 'drw':
+        Runner = runner.ptb_drw.PTBRunner('ptb', params)
     Runner.run()
 
 if __name__ == '__main__':

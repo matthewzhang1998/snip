@@ -1,6 +1,42 @@
 import tensorflow as tf
 import numpy as np
-from util.network_util import *
+from util import norm_util
+
+def get_activation_func(activation_type):
+    if activation_type == 'leaky_relu':
+        activation_func = tf.nn.leaky_relu
+    elif activation_type == 'tanh':
+        activation_func = tf.nn.tanh
+    elif activation_type == 'relu':
+        activation_func = tf.nn.relu
+    elif activation_type == 'elu':
+        activation_func = tf.nn.elu
+    elif activation_type == 'none':
+        activation_func = tf.identity
+    elif activation_type == 'sigmoid':
+        activation_func = tf.sigmoid
+    else:
+        raise ValueError(
+            "Unsupported activation type: {}!".format(activation_type)
+        )
+    return activation_func
+
+def get_normalizer(normalizer_type, train=True):
+    if normalizer_type == 'batch':
+        normalizer = norm_util.batch_norm_with_train if train else \
+            norm_util.batch_norm_without_train
+
+    elif normalizer_type == 'layer':
+        normalizer = norm_util.layer_norm
+
+    elif normalizer_type == 'none':
+        normalizer = tf.identity
+
+    else:
+        raise ValueError(
+            "Unsupported normalizer type: {}!".format(normalizer_type)
+        )
+    return normalizer
 
 def get_initializer(shape, init_method, init_para, seed):
     npr = np.random.RandomState(seed)
@@ -260,7 +296,7 @@ class SparseLSTMCell(object):
                 sparse_list, name='sparse_linear'
             )
 
-            initializer = init_ops.zeros_initializer
+            initializer = tf.zeros_initializer
             self._bias = tf.get_variable(
                 name='bias', shape=[4 * self._num_units], initializer=initializer
             )

@@ -3,6 +3,11 @@ import numpy as np
 from util import norm_util
 from util.rnn_util import *
 
+'''
+THIS CODE IS MOSTLY DEPRECATED AND ONLY USED BY THE ORIGINAL MNIST EXPERIMENT
+PLEASE IGNORE
+'''
+
 def get_activation_func(activation_type):
     if activation_type == 'leaky_relu':
         activation_func = tf.nn.leaky_relu

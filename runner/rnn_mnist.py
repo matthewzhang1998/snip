@@ -1,11 +1,11 @@
 import numpy as np
 import tensorflow as tf
 from model.mask import *
+from model.unit import *
 from runner.base_runner import *
 from util.optimizer_util import *
+from util.test_util import *
 from tensorflow import keras
-
-from data.load_pen import *
 
 ZERO_32 = tf.constant(0.0, dtype=tf.float32)
 
@@ -54,6 +54,8 @@ class MNISTRunner(BaseRunner):
             tf.summary.FileWriter(self.Dir+'/random', self.Sess.graph)
         self.Writer['Snip'] = \
             tf.summary.FileWriter(self.Dir+'/snip', self.Sess.graph)
+        self.Writer['Unit'] = \
+            tf.summary.FileWriter(self.Dir+'/unit', self.Sess.graph)
 
     def _build_outputs(self):
         with tf.variable_scope(self.scope):
@@ -61,6 +63,8 @@ class MNISTRunner(BaseRunner):
             self.Model['Snip'] = Mask('snip', self.params,
                 28, 10, self.params.seed)
             self.Model['Random'] = Mask('random', self.params,
+                28, 10, self.params.seed)
+            self.Model['Unit'] = Unit('unit', self.params,
                 28, 10, self.params.seed)
 
             self.start_ix = 0
@@ -85,6 +89,7 @@ class MNISTRunner(BaseRunner):
                 'Labels': self.Placeholder['Input_Label']
             }
 
+
             self.Tensor['Loss_Function'] = \
                 SoftmaxCE
 
@@ -102,17 +107,35 @@ class MNISTRunner(BaseRunner):
                 self.Tensor['Proto_Minibatch'], self.Tensor['Recurrent_Loss_Function']
             )
 
+            self.Model['Unit'].prune(
+                self.Tensor['Proto_Minibatch'], self.Tensor['Recurrent_Loss_Function']
+            )
+
+            self.Model['Unit'].unit(
+                self.Tensor['Proto_Minibatch'], self.Tensor['Recurrent_Loss_Function']
+            )
+
             self.Placeholder['Random_Mask'] = self.Model['Random'].Placeholder
             self.Placeholder['Snip_Mask'] = self.Model['Snip'].Placeholder
 
+            self.Placeholder['Unit_Mask'] = self.Model['Unit'].Placeholder
+
+            self.Placeholder['Unit_Kernel'] = self.Model['Unit'].Snip['Dummy_Kernel']
+            self.Placeholder['Unit_Bias'] = self.Model['Unit'].Snip['Dummy_Bias']
+
             self.Tensor['Snip_Grad'] = self.Model['Snip'].Tensor['Snip_Grad']
             self.Tensor['Random_Grad'] = self.Model['Random'].Tensor['Snip_Grad']
+            self.Tensor['Unit_Grad'] = self.Model['Unit'].Tensor['Unit_Grad']
 
             self.Output['Random_Pred'] = self.Model['Random'].run(
                 self.Placeholder['Input_Feature']
             )[:,-1]
 
             self.Output['Snip_Pred'] = self.Model['Snip'].run(
+                self.Placeholder['Input_Feature']
+            )[:,-1]
+
+            self.Output['Unit_Pred'] = self.Model['Unit'].run(
                 self.Placeholder['Input_Feature']
             )[:,-1]
 
@@ -126,6 +149,11 @@ class MNISTRunner(BaseRunner):
                     self.Output['Snip_Pred'], self.Placeholder['Input_Label']
                 )
             )
+            self.Output['Unit_Loss'] = tf.reduce_mean(
+                self.Tensor['Loss_Function'](
+                    self.Output['Unit_Pred'], self.Placeholder['Input_Label']
+                )
+            )
 
             self.Output['Random_Loss'] += self.params.weight_decay * \
                 tf.reduce_sum(
@@ -136,11 +164,17 @@ class MNISTRunner(BaseRunner):
                 tf.reduce_sum(
                     [tf.nn.l2_loss(t) for t in self.Model['Snip'].Snip['Weight']]
                 )
+            self.Output['Unit_Loss'] += self.params.weight_decay * \
+                tf.reduce_sum(
+                    [tf.nn.l2_loss(t) for t in self.Model['Unit'].Snip['Weight']]
+                )
 
             self.Output['Random_Train'] = \
                 self.Output['Optimizer'].minimize(self.Output['Random_Loss'])
             self.Output['Snip_Train'] = \
                 self.Output['Optimizer'].minimize(self.Output['Snip_Loss'])
+            self.Output['Unit_Train'] = \
+                self.Output['Optimizer'].minimize(self.Output['Unit_Loss'])
 
     def _build_summary(self):
         self.Output['Loss'] = tf.reduce_mean(
@@ -159,6 +193,8 @@ class MNISTRunner(BaseRunner):
             ), tf.float32)
         )
 
+        self.Summary['Test'], self.Placeholder['Test'], self.Output['Test'] = test_rnn(params)
+
         self.Summary['Train_Error'] = tf.summary.scalar(
             'Train_Error', self.Output['Error']
         )
@@ -174,7 +210,7 @@ class MNISTRunner(BaseRunner):
         )
 
         self.Summary['Weight'] = {}
-        for key in ['Snip', 'Random']:
+        for key in ['Snip', 'Random', 'Unit']:
             self.Summary['Weight'][key] = [
                 tf.summary.histogram(weight.name,
                     tf.boolean_mask(weight, tf.not_equal(weight, ZERO_32)))
@@ -184,6 +220,7 @@ class MNISTRunner(BaseRunner):
         self.Output['Pred'] = {
             'Snip': self.Output['Snip_Pred'],
             'Random': self.Output['Random_Pred'],
+            'Unit': self.Output['Unit_Pred']
         }
 
         self.train_summary = [
@@ -197,6 +234,7 @@ class MNISTRunner(BaseRunner):
         self.train_op = [
             self.Output['Snip_Train'],
             self.Output['Random_Train'],
+            self.Output['Unit_Train']
         ]
 
     def preprocess(self, features, labels):
@@ -220,18 +258,117 @@ class MNISTRunner(BaseRunner):
 
             self.Mask['Delta'][self.Model['Snip'].Snip['Mask'][ix]] = \
                 perturb
+            self.Mask['Delta'][self.Model['Unit'].Snip['Mask'][ix]] = \
+                perturb
 
-        self.Mask['Index'] = self.Sess.run(self.Tensor['Snip_Grad'],
+        self.Mask['Index'] = {}
+        self.Mask['Index']['Snip'] = self.Sess.run(
+            self.Tensor['Snip_Grad'],
            {**self.Mask['Random'], **self.Mask['Delta'], **feed_dict}
         )
 
         self.Mask['Snip'] = {}
+        self.Mask['Unit'] = {}
+
+        self.preprocess_unit(features, labels)
 
         if self.params.prune_method == 'together':
-            self.prune_together()
+            self.prune_together('Snip')
 
         elif self.params.prune_method == 'separate' or 'weighted':
-            self.prune_separate()
+            self.prune_separate('Snip')
+
+    def preprocess_unit(self, features, labels):
+        weights, biases = self.Sess.run(
+            [self.Model['Unit'].model.weight_variables(), self.Model['Unit'].model.bias_variables()]
+        )
+
+        # need to reconfigure this if ever want to run on multiple layers
+        weights = weights[0]
+        biases = biases[0]
+        ones = np.ones([self.params.rnn_r_hidden_seq[-1], 10])
+
+        i_var, j_var, f_var, o_var = [],[],[],[]
+        i_grad, j_grad, f_grad, o_grad = [],[],[],[]
+
+        nh = self.params.rnn_r_hidden_seq[0]
+        nu = self.params.num_unitwise
+
+        for i in range(nh//nu):
+            dummy_var = np.concatenate(
+                [weights[:,i*nu:(i+1)*nu], weights[:,i*nu+nh:(i+1)*nu+nh],
+                 weights[:,i*nu+2*nh:(i+1)*nu+2*nh], weights[:,i*nu+3*nh:(i+1)*nu+3*nh]], axis=1
+            )
+            print(dummy_var.shape)
+            dummy_bias = np.concatenate([biases[i*nu:(i+1)*nu], biases[i*nu+nh:(i+1)*nu+nh],
+                biases[i*nu+2*nh:(i+1)*nu+2*nh], biases[i*nu+3*nh:(i+1)*nu+3*nh]], axis=0
+            )
+
+            feed_dict = {
+                self.Placeholder['Unit_Kernel'][0]: dummy_var,
+                self.Placeholder['Unit_Bias'][0]: dummy_bias,
+                self.Model['Unit'].Snip['Mask'][1]: ones,
+                self.Placeholder['Input_Feature']: features,
+                self.Placeholder['Input_Label']: labels,
+            }
+
+            grads = self.Sess.run(
+                self.Tensor['Unit_Grad'], feed_dict
+            )
+            grads = grads[0]
+            i_grad.append(grads[:,:nu])
+            j_grad.append(grads[:,nu:2*nu])
+            f_grad.append(grads[:,2*nu:3*nu])
+            o_grad.append(grads[:,3*nu:])
+
+        if nh % nu != 0:
+            ap = nh % nu
+            dummy_var = np.concatenate(
+                [weights[:,nh-nu:nh], weights[:,2*nh-nu:2*nh],
+                 weights[:,3*nh-nu:3*nh], weights[:,-nu:]], axis=1
+            )
+            dummy_bias = np.concatenate([biases[nh-nu:nh], biases[2*nh-nu:2*nh],
+                biases[3*nh-nu:3*nh],biases[-nu:]], axis=0
+            )
+
+            feed_dict = {
+                self.Placeholder['Unit_Kernel'][0]: dummy_var,
+                self.Placeholder['Unit_Bias'][0]: dummy_bias,
+                self.Model['Unit'].Snip['Mask'][1]: ones,
+                self.Placeholder['Input_Feature']: features,
+                self.Placeholder['Input_Label']: labels,
+            }
+
+            grads = self.Sess.run(
+                self.Tensor['Unit_Grad'], feed_dict
+            )
+            grads = grads[0]
+            i_grad.append(grads[:, nu-ap:nu])
+            j_grad.append(grads[:, 2*nu-ap:2*nu])
+            f_grad.append(grads[:, 3*nu-ap:3*nu])
+            o_grad.append(grads[:, -ap:])
+
+        w_grad = np.concatenate([*i_grad, *j_grad, *f_grad, *o_grad], axis=1)
+
+        k = int((1 - self.params.unit_k) * w_grad.size)
+        zeros = np.zeros_like(w_grad)
+
+        if self.params.value_method == 'largest':
+            ind = np.argpartition(np.abs(w_grad), -k, axis=None)[-k:]
+        elif self.params.value_method == 'smallest':
+            ind = np.argpartition(-np.abs(w_grad), -k, axis=None)[-k:]
+        elif self.params.value_method == 'mixed':
+            l = int(k / 2)
+            ind = np.concatenate(
+                [np.argpartition(np.abs(w_grad), -k, axis=None)[-l:],
+                 np.argpartition(np.abs(w_grad), -k, axis=None)[:k - l]]
+            )
+        ind = np.unravel_index(ind, zeros.shape)
+        zeros[ind] = 1
+
+        # SPECIFIC TO RNNs
+        self.Mask['Unit'][self.Model['Unit'].Snip['Mask'][0]] = zeros
+        self.Mask['Unit'][self.Model['Unit'].Snip['Mask'][1]] = ones
 
     def train(self, i, features, labels):
         # self.Dataset.train.next_batch(self.params.batch_size)
@@ -240,6 +377,7 @@ class MNISTRunner(BaseRunner):
         feed_dict = {
             **self.Mask['Random'],
             **self.Mask['Snip'],
+            **self.Mask['Unit'],
             self.Placeholder['Input_Feature']: features,
             self.Placeholder['Input_Label']: labels,
             self.Placeholder['Learning_Rate']: self.learning_rate
@@ -267,6 +405,7 @@ class MNISTRunner(BaseRunner):
         feed_dict = {
             **self.Mask['Random'],
             **self.Mask['Snip'],
+            **self.Mask['Unit'],
             self.Placeholder['Input_Feature']: features,
             self.Placeholder['Input_Label']: labels,
         }
@@ -324,10 +463,10 @@ class MNISTRunner(BaseRunner):
         self.start_ix = end_ix
         return features, labels
 
-    def prune_together(self):
+    def prune_together(self, key):
         total_shape, total_size, flat_grad = [], [], []
-        for ix in range(len(self.Mask['Index'])):
-            grad = self.Mask['Index'][ix]
+        for ix in range(len(self.Mask['Index'][key])):
+            grad = self.Mask['Index'][key][ix]
             total_shape.append(grad.shape)
             total_size.append(grad.size)
             flat_grad.append(grad.flatten())
@@ -362,13 +501,13 @@ class MNISTRunner(BaseRunner):
         for ix, (shape, size) in enumerate(zip(total_shape, total_size)):
             print(ix)
             end = start + size
-            self.Mask['Snip'][self.Model['Snip'].Snip['Mask'][ix]] = \
+            self.Mask[key][self.Model[key].Snip['Mask'][ix]] = \
                 np.reshape(zeros[start:end], shape)
             start = end
 
-    def prune_separate(self):
-        for ix in range(len(self.Mask['Index'])):
-            grad = self.Mask['Index'][ix]
+    def prune_separate(self, key):
+        for ix in range(len(self.Mask['Index'][key])):
+            grad = self.Mask['Index'][key][ix]
             k = int((1 - self.params.prune_k) * grad.size)
             zeros = np.zeros_like(grad)
 
@@ -389,4 +528,4 @@ class MNISTRunner(BaseRunner):
                 )
             ind = np.unravel_index(ind, zeros.shape)
 
-            self.Mask['Snip'][self.Model['Snip'].Snip['Mask'][ix]] = zeros
+            self.Mask[key][self.Model[key].Snip['Mask'][ix]] = zeros
