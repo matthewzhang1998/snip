@@ -170,8 +170,8 @@ class PTBRunner(BaseRunner):
                             )
                             top_b_k1 += ni+j*nu
 
-                            top_k = (np.concatenate(top_r_k1, top_b_k1),
-                                np.concatenate(top_r_k2, top_b_k2))
+                            top_k = (np.concatenate([top_r_k1, top_b_k1]),
+                                np.concatenate([top_r_k2, top_b_k2]))
 
                             for k in range(len(top_k[0])):
                                 l, m = top_k[0][k], top_k[1][k]
